@@ -1,6 +1,6 @@
-# Éclipse 🌑
+# PIXEL RUSH ⚡
 
-Jeu mobile original au tap — inverse ta trajectoire, collecte les étoiles, évite les zones d'éclipse.
+Runner pixel-art néon style synthwave. Cours, saute, esquive les slimes et les chauves-souris, collecte les pièces et partage ton score !
 
 ## 🎮 Jouer maintenant
 
@@ -15,27 +15,24 @@ Jeu mobile original au tap — inverse ta trajectoire, collecte les étoiles, é
 1. Va sur https://github.com/cmphjfdt87-rgb/Testemobilcursor/settings/pages
 2. **Source** → **Deploy from a branch**
 3. Branche **gh-pages** → dossier **/ (root)** → **Save**
-4. Attends 1-2 minutes, puis ouvre le lien permanent ci-dessus
 
 ## 📲 Installer sur iPhone
 
-1. Ouvre le lien ci-dessus dans **Safari** (pas Chrome)
-2. Appuie sur **Partager** (icône carré avec flèche vers le haut)
-3. Fais défiler et choisis **« Sur l'écran d'accueil »**
-4. Appuie sur **Ajouter**
+1. Ouvre le lien dans **Safari** (pas Chrome)
+2. Appuie sur **Partager** (carré avec flèche vers le haut)
+3. Choisis **« Sur l'écran d'accueil »** → **Ajouter**
 
-Le jeu apparaît comme une app sur ton écran d'accueil, en plein écran, sans barre Safari.
+## 🕹️ Gameplay
 
-## Contrôles
-
-- **Tap** : inverse le sens de rotation
-- **⭐** : collecte les étoiles pour marquer des points
-- **🌑** : évite les zones sombres sur l'orbite
+- **1 tap** : saut — **2 taps** : double saut
+- 🪙 Pièces = +10 points
+- ⚡ La vitesse augmente en continu
+- 🟢 Slimes, 🦇 chauves-souris et ⛰️ pics à esquiver
+- 🎵 Musique chiptune + effets sonores rétro
+- 📤 Bouton « Partager mon score » intégré
 
 ## Développement local
 
 ```bash
-npx serve .
+python3 -m http.server 8080
 ```
-
-Puis ouvre `http://localhost:3000` sur ton téléphone (même réseau Wi-Fi).
