@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1a2f" />
+<title>Ninebot Companion</title>
+<style>
+:root{--bg:#0a1a2f;--bg2:#0f2540;--accent:#00d49c;--text:#eaf2f7;--muted:#8ba3b8;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.12)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,var(--bg2),var(--bg));color:var(--text);min-height:100vh;padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px)}
+.screen{max-width:520px;margin:0 auto}
+.hero{text-align:center;padding:40px 0 24px}
+.logo{width:96px;height:96px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+h1{margin:16px 0 4px;font-size:26px}
+.subtitle{color:var(--muted);margin:0}
+button{font:inherit;cursor:pointer;border:none;border-radius:14px}
+.primary{width:100%;padding:16px;background:var(--accent);color:#04231b;font-weight:700;font-size:17px;margin:8px 0}
+.primary.small{padding:12px;font-size:15px;margin-top:12px}
+.ghost{background:transparent;color:var(--accent);padding:8px 12px}
+.tip,.warning{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:16px;color:var(--muted);font-size:14px}
+.warning{border-color:#f0a500;color:#ffd98a}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 0 8px;font-weight:700}
+.speedo{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px 0;margin:8px 0 16px}
+.speedo .big{font-size:68px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.speedo .unit{color:var(--muted);margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+.grid .card span{display:block;color:var(--muted);font-size:13px}
+.grid .card b{font-size:22px;font-variant-numeric:tabular-nums}
+.card.info{margin-top:12px;display:grid;gap:8px}
+.card.info div{display:flex;justify-content:space-between}
+.card.info span{color:var(--muted)}
+h2{margin:24px 0 10px;font-size:18px}
+.regions{display:grid;gap:10px}
+.region-btn{display:flex;align-items:center;gap:12px;text-align:left;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:14px;width:100%}
+.region-btn.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.region-btn .flag{font-size:26px}
+.region-btn small{color:var(--muted)}
+.ack{display:flex;gap:10px;font-size:14px;color:var(--muted);margin-bottom:12px;align-items:flex-start}
+.ack input{margin-top:3px}
+.row{display:flex;justify-content:space-between;align-items:baseline}
+.row b{font-size:22px}.row small{color:var(--muted)}
+input[type=range]{width:100%;margin:12px 0;accent-color:var(--accent)}
+.toggle{display:flex;gap:10px;align-items:center;padding:12px 0}
+.disclaimer{color:#ffb37a;font-size:13px;margin-top:16px;line-height:1.5}
+pre{background:#071322;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:12px;max-height:200px;overflow:auto;white-space:pre-wrap}
+.svglogo{width:96px;height:96px}
+</style>
+</head>
+<body>
+<section id="scan-screen" class="screen">
+  <div class="hero">
+    <svg class="svglogo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00d49c"/><stop offset="1" stop-color="#0a1a2f"/></linearGradient></defs>
+      <rect width="100" height="100" rx="22" fill="url(#g)"/>
+      <circle cx="30" cy="72" r="8" fill="none" stroke="#fff" stroke-width="4"/>
+      <circle cx="72" cy="72" r="8" fill="none" stroke="#fff" stroke-width="4"/>
+      <path d="M30 72 L58 72 L64 36 L74 36" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M64 36 L64 24" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <h1>Ninebot Companion</h1>
+    <p class="subtitle">Contrôle ta trottinette Ninebot / Xiaomi en Bluetooth</p>
+  </div>
+  <div id="nobt" class="warning" hidden>
+    <strong>Bluetooth web non disponible dans ce navigateur.</strong>
+    <p>Sur iPhone, ouvre cette page dans <b>Bluefy</b> (navigateur gratuit sur l'App Store) : Safari ne gère pas le Bluetooth.</p>
+  </div>
+  <button id="connect-btn" class="primary">🔍 Connecter ma trottinette</button>
+  <div class="tip"><p>Trottinette <b>allumée</b> et proche. Sélectionne-la dans la liste qui apparaît.</p></div>
+</section>
+
+<section id="app-screen" class="screen" hidden>
+  <header class="topbar"><span>Ninebot Companion</span><button id="disconnect-btn" class="ghost">Déconnexion</button></header>
+  <div class="speedo"><div class="big" id="speed">--</div><div class="unit">km/h</div></div>
+  <div class="grid">
+    <div class="card"><span>Batterie</span><b id="battery">--</b></div>
+    <div class="card"><span>Tension</span><b id="voltage">--</b></div>
+    <div class="card"><span>Distance</span><b id="total">--</b></div>
+    <div class="card"><span>Température</span><b id="temp">--</b></div>
+  </div>
+  <div class="card info">
+    <div><span>N° série</span><b id="serial">—</b></div>
+    <div><span>Firmware</span><b id="firmware">—</b></div>
+    <div><span>Région</span><b id="region">—</b></div>
+  </div>
+  <h2>Région</h2>
+  <div id="regions" class="regions"></div>
+  <h2>Réglages</h2>
+  <label class="ack"><input type="checkbox" id="ack" /><span>Je comprends les risques (légalité, sécurité, garantie) et j'utilise ces réglages sur terrain privé.</span></label>
+  <div class="card">
+    <div class="row"><b id="limit-label">25 km/h</b><small id="limitCurrent"></small></div>
+    <input type="range" id="limit-slider" min="5" max="45" value="25" step="1" />
+    <button id="apply-limit" class="primary small">Appliquer la vitesse max</button>
+  </div>
+  <label class="toggle"><input type="checkbox" id="cruise" /> Régulateur de vitesse</label>
+  <label class="toggle"><input type="checkbox" id="tail" /> Feu arrière</label>
+  <div class="disclaimer">Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie. Modèles chiffrés récents (Max G30+) non pris en charge par cette version web.</div>
+  <h2>Journal</h2>
+  <pre id="log"></pre>
+</section>
+
+<script>
+// ---- Protocole Xiaomi/Ninebot (familles texte clair : M365/1S/Pro/ES) ----
+var UART_SERVICE="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+var UART_RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+var UART_TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+var ADDR={app:0x3d,esc:0x20};
+var CMD={read:0x01,write:0x03};
+var REG={serial:0x10,firmware:0x1a,battery:0x32,voltage:0x34,speed:0xb5,total:0x29,temp:0x3e,region:0x72,speedLimit:0x74,cruise:0x7c,tail:0x7d};
+var REGIONS=[
+ {value:0x00,name:"Global / Déverrouillé",flag:"🌍",note:"Vitesse max selon le matériel."},
+ {value:0x01,name:"États-Unis",flag:"🇺🇸",note:"Plafond typique 32 km/h."},
+ {value:0x02,name:"Europe (25 km/h)",flag:"🇪🇺",note:"Plafond légal 25 km/h."},
+ {value:0x03,name:"Chine (25 km/h)",flag:"🇨🇳",note:"Plafond légal 25 km/h."}
+];
+function checksum16(bytes){var s=0;for(var i=0;i<bytes.length;i++)s=(s+bytes[i])>>>0;return (~s)&0xffff;}
+function buildFrame(dst,src,cmd,payload){var body=[dst,src,cmd].concat(payload);var len=body.length&0xff;var c=[len].concat(body);var ck=checksum16(c);return Uint8Array.from([0x5a,0xa5].concat(c).concat([ck&0xff,(ck>>8)&0xff]));}
+function readReq(reg,len){return buildFrame(ADDR.esc,ADDR.app,CMD.read,[reg,len]);}
+function writeReq(reg,bytes){return buildFrame(ADDR.esc,ADDR.app,CMD.write,[reg].concat(bytes));}
+function parse(buf){if(buf.length<8)return null;if(buf[0]!==0x5a||buf[1]!==0xa5)return null;var len=buf[2];var total=2+1+len+2;if(buf.length<total)return null;var c=buf.slice(2,3+len);var exp=checksum16(c);var act=buf[3+len]|(buf[3+len+1]<<8);if(exp!==act)return null;return{frame:{register:buf[6],payload:buf.slice(7,3+len)},consumed:total};}
+function le16(p){return p.length>=2?(p[0]|(p[1]<<8)):null;}
+function le16s(p){var v=le16(p);return v==null?null:(v>0x7fff?v-0x10000:v);}
+function le32(p){return p.length>=4?((p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24))>>>0):null;}
+
+// ---- App ----
+var state={},device=null,rxChar=null,txChar=null,rxBuffer=[],pollTimer=null;
+function $(id){return document.getElementById(id);}
+function log(m){var el=$("log");el.textContent="["+new Date().toLocaleTimeString()+"] "+m+"\n"+el.textContent;}
+function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+
+function connect(){
+ if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;return;}
+ log("Sélection de l'appareil…");
+ navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[UART_SERVICE]})
+ .then(function(d){device=d;d.addEventListener("gattserverdisconnected",onDisc);log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();})
+ .then(function(s){return s.getPrimaryService(UART_SERVICE);})
+ .then(function(svc){return Promise.all([svc.getCharacteristic(UART_RX),svc.getCharacteristic(UART_TX)]);})
+ .then(function(chs){rxChar=chs[0];txChar=chs[1];return txChar.startNotifications();})
+ .then(function(){txChar.addEventListener("characteristicvaluechanged",onNotify);log("Connecté. Lecture des infos…");show(true);initialReads();pollTimer=setInterval(refreshTelemetry,1000);})
+ .catch(function(e){log("Erreur : "+e.message);});
+}
+function onDisc(){clearInterval(pollTimer);rxChar=txChar=null;log("Déconnecté.");show(false);}
+function disconnect(){clearInterval(pollTimer);if(device&&device.gatt.connected)device.gatt.disconnect();}
+function send(frame){if(!rxChar)return;rxChar.writeValueWithoutResponse(frame).catch(function(){return rxChar.writeValue(frame).catch(function(e){log("Écriture échouée: "+e.message);});});}
+function read(reg,len){send(readReq(reg,len));}
+function write(reg,bytes){send(writeReq(reg,bytes));}
+function initialReads(){read(REG.serial,14);read(REG.firmware,2);read(REG.region,1);read(REG.speedLimit,2);refreshTelemetry();}
+function refreshTelemetry(){read(REG.battery,2);read(REG.voltage,2);read(REG.speed,2);read(REG.total,4);read(REG.temp,2);}
+function onNotify(e){var v=e.target.value;for(var i=0;i<v.byteLength;i++)rxBuffer.push(v.getUint8(i));var r;while((r=parse(rxBuffer))){apply(r.frame);rxBuffer=rxBuffer.slice(r.consumed);}if(rxBuffer.length>512)rxBuffer=[];}
+function apply(f){var p=f.payload,v;switch(f.register){
+ case REG.serial:state.serial=String.fromCharCode.apply(null,p).replace(/[^\x20-\x7e]/g,"").trim();break;
+ case REG.firmware:v=le16(p);if(v!=null)state.firmware=((v>>8)&0xf)+"."+((v>>4)&0xf)+"."+(v&0xf);break;
+ case REG.battery:v=le16(p);if(v!=null)state.battery=v;break;
+ case REG.voltage:v=le16(p);if(v!=null)state.voltage=v/100;break;
+ case REG.speed:v=le16s(p);if(v!=null)state.speed=Math.abs(v/1000);break;
+ case REG.total:v=le32(p);if(v!=null)state.total=v/1000;break;
+ case REG.temp:v=le16s(p);if(v!=null)state.temp=Math.round(v/10);break;
+ case REG.region:if(p.length)state.region=p[0];break;
+ case REG.speedLimit:v=le16(p);if(v!=null)state.speedLimit=v;break;
+}render();}
+function setRegion(val){var r=REGIONS.filter(function(x){return x.value===val;})[0];log("Écriture région → "+(r?r.name:val));write(REG.region,[val]);read(REG.region,1);}
+function setSpeed(k){var v=Math.max(1,Math.min(k,100));log("Écriture vitesse max → "+v+" km/h");write(REG.speedLimit,[v&0xff,(v>>8)&0xff]);read(REG.speedLimit,2);}
+function render(){
+ $("speed").textContent=state.speed!=null?state.speed.toFixed(1):"--";
+ $("battery").textContent=state.battery!=null?state.battery+" %":"--";
+ $("voltage").textContent=state.voltage!=null?state.voltage.toFixed(1)+" V":"--";
+ $("total").textContent=state.total!=null?state.total.toFixed(1)+" km":"--";
+ $("temp").textContent=state.temp!=null?state.temp+" °C":"--";
+ $("serial").textContent=state.serial||"—";
+ $("firmware").textContent=state.firmware||"—";
+ var r=REGIONS.filter(function(x){return x.value===state.region;})[0];
+ $("region").textContent=r?(r.flag+" "+r.name):"—";
+ if(state.speedLimit!=null)$("limitCurrent").textContent="Actuel : "+state.speedLimit+" km/h";
+ var btns=document.querySelectorAll(".region-btn");for(var i=0;i<btns.length;i++){btns[i].classList.toggle("active",Number(btns[i].getAttribute("data-value"))===state.region);}
+}
+function show(connected){$("scan-screen").hidden=connected;$("app-screen").hidden=!connected;}
+function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=document.createElement("button");b.className="region-btn";b.setAttribute("data-value",r.value);b.innerHTML='<span class="flag">'+r.flag+'</span><span><strong>'+r.name+'</strong><br><small>'+r.note+'</small></span>';b.onclick=function(){if(confirm("Changer la région vers « "+r.name+" » ?\n"+r.note))setRegion(r.value);};w.appendChild(b);});}
+function init(){
+ buildRegions();
+ $("connect-btn").onclick=connect;
+ $("disconnect-btn").onclick=disconnect;
+ var sl=$("limit-slider");sl.oninput=function(){$("limit-label").textContent=sl.value+" km/h";};
+ $("apply-limit").onclick=function(){if(!$("ack").checked){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
+ $("cruise").onchange=function(e){if($("ack").checked)write(REG.cruise,[e.target.checked?1:0]);};
+ $("tail").onchange=function(e){if($("ack").checked)write(REG.tail,[e.target.checked?1:0]);};
+ if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;}
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
