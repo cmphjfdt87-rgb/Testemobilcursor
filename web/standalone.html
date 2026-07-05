@@ -100,6 +100,22 @@ pre{background:#071322;border:1px solid var(--border);border-radius:12px;padding
   <h2>Débridage</h2>
   <button id="diag-btn" class="primary">🔓 Débrider et vérifier ma trottinette</button>
   <div id="diag" class="card" hidden style="margin-top:12px"></div>
+
+  <details style="margin-top:12px">
+    <summary style="cursor:pointer;padding:8px 0"><b>🛴 Ma trottinette est une Ninebot E-series (E22 / E25 / E45 / E45E)</b></summary>
+    <div class="tip">
+      Ces modèles sont <b>chiffrés</b> : cette app (et toute app iPhone) ne peut pas les débrider. La seule méthode qui marche passe par <b>ScooterHacking Utility</b>, une app <b>Android gratuite</b> (emprunte un téléphone Android).<br><br>
+      <b>Vitesse max réelle une fois débridée : ~29–30 km/h</b> sur E45 (le « 45 » n'est PAS la vitesse). Le matériel ne peut pas faire 45 km/h.<br><br>
+      <b>Ton firmware est DRV 2.7.2</b> → le changement de série est <b>bloqué</b> depuis la 2.7.1. Il faut d'abord downgrader :<br>
+      <b>1.</b> Installe SHU : <b>utility.cfw.sh/apk</b> (sur Android).<br>
+      <b>2.</b> Dans SHU : <i>Load Original → DRV → DRV271</i> (version modifiée qui autorise le downgrade) → <b>FLASH</b>.<br>
+      <b>3.</b> Puis <i>Load Original → DRV → DRV255</i> → <b>FLASH</b>.<br>
+      <b>4.</b> Bouton <b>« Change Region »</b> → choisis le preset <b>E45 30 km/h</b>.<br>
+      <b>5.</b> Laisse redémarrer, passe en <b>mode Sport (S)</b> → ~30 km/h.<br><br>
+      Guide complet illustré : <b>scooterhack.in/eseriesunlock</b><br><br>
+      ⚠️ Flasher un firmware comporte un petit risque. Suis le guide à la lettre, batterie chargée, et n'utilise <b>pas</b> de CFW esx.cfw.sh avant (ça bloque cette méthode).
+    </div>
+  </details>
   <details id="fixbox" style="margin-top:12px">
     <summary style="cursor:pointer;padding:8px 0">Ça ne marche pas ? → Solutions</summary>
     <div class="tip">
@@ -209,10 +225,10 @@ function renderDiag(before,target){
  var box=$("diag");
  if(!state.responded){
   box.innerHTML="<b>❌ Ta trottinette ne répond pas aux commandes.</b><br><br>"+
-   "C'est très probablement un modèle <b>récent chiffré</b> (Ninebot Max G30, F, G2/GT…). "+
-   "Cette version web ne peut pas les débrider — il faudrait l'app native + le déchiffrement du firmware.<br><br>"+
-   "👉 Ouvre « Ça ne marche pas ? → Solutions » ci-dessous.";
-  $("fixbox").open=true;return;
+   "C'est un modèle <b>chiffré</b> (Ninebot <b>E22/E25/E45/E45E</b>, Max G30, F, G2/GT…). "+
+   "Aucune app iPhone ne peut les débrider.<br><br>"+
+   "👉 Pour une <b>E-series (E45E)</b> : ouvre le bloc « 🛴 Ma trottinette est une Ninebot E-series » ci-dessous — la solution passe par l'app Android gratuite <b>ScooterHacking Utility</b> (~30 km/h max sur E45).";
+  return;
  }
  var regionNow=state.region,limitNow=state.speedLimit;
  var regionChanged=(before.region!==regionNow&&regionNow===0x00);
