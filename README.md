@@ -1,6 +1,6 @@
-# PIXEL RUSH ⚡
+# NEON DRIFT 3D 🏁
 
-Runner pixel-art néon style synthwave. Cours, saute, esquive les slimes et les chauves-souris, collecte les pièces et partage ton score !
+Le runner de conduite **3D** néon ultime — moteur WebGL (Three.js), boutique de véhicules, économie de pièces et partage de score.
 
 ## 🎮 Jouer maintenant
 
@@ -24,12 +24,31 @@ Runner pixel-art néon style synthwave. Cours, saute, esquive les slimes et les 
 
 ## 🕹️ Gameplay
 
-- **1 tap** : saut — **2 taps** : double saut
-- 🪙 Pièces = +10 points
-- ⚡ La vitesse augmente en continu
-- 🟢 Slimes, 🦇 chauves-souris et ⛰️ pics à esquiver
-- 🎵 Musique chiptune + effets sonores rétro
-- 📤 Bouton « Partager mon score » intégré
+- **Balaye ← →** pour changer de voie (tap = klaxon 📯)
+- Esquive voitures, camions et barrières néon
+- 🪙 Collecte les pièces + bonus de fin de course
+- ⚡ « Frôlé ! » : +5 points quand tu rases un obstacle
+- La vitesse monte en continu, jusqu'à 230 km/h
+
+## 🛒 Boutique (Garage)
+
+| Véhicule | Prix |
+|----------|------|
+| 🏎️ NEON GT | Gratuit |
+| 🚐 RETRO VAN | 🪙 250 |
+| 🚗 MUSCLE 88 | 🪙 750 |
+| 🚓 INTERCEPTOR (gyrophares !) | 🪙 1500 |
+| 🚛 BIG RIG — le camion néon | 🪙 3000 |
+| 🛸 OVNI 51 (il vole !) | 🪙 6000 |
+
+Prévisualisation 3D en direct dans le garage, achats sauvegardés sur ton téléphone.
+
+## ⚙️ Tech
+
+- Three.js r128 (WebGL), 60 FPS visé sur mobile
+- Musique synthwave + SFX générés en WebAudio (zéro fichier audio)
+- PWA : hors-ligne après le premier chargement, installable
+- Un seul fichier `index.html`
 
 ## Développement local
 
