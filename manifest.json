@@ -1,12 +1,12 @@
 {
-  "name": "Éclipse",
-  "short_name": "Éclipse",
-  "description": "Inverse ta trajectoire, collecte les étoiles, évite les éclipses.",
+  "name": "Pixel Rush",
+  "short_name": "Pixel Rush",
+  "description": "Runner pixel-art néon. Cours, saute, esquive les monstres !",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a1a",
-  "theme_color": "#0a0a1a",
+  "background_color": "#1a1c2c",
+  "theme_color": "#1a1c2c",
   "lang": "fr",
   "icons": [
     {
