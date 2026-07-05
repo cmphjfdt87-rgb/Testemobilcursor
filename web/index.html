@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1a2f" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon.png" />
+  <title>Ninebot Companion</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- Écran de connexion -->
+  <section id="scan-screen" class="screen">
+    <div class="hero">
+      <img src="./icon.png" alt="logo" class="logo" />
+      <h1>Ninebot Companion</h1>
+      <p class="subtitle">Contrôle ta trottinette Ninebot / Xiaomi en Bluetooth</p>
+    </div>
+
+    <div id="nobt" class="warning" hidden>
+      <strong>Bluetooth web non disponible dans ce navigateur.</strong>
+      <p>Sur iPhone, ouvre cette page dans <b>Bluefy</b> (navigateur gratuit sur l'App Store)&nbsp;: Safari ne gère pas le Bluetooth.</p>
+    </div>
+
+    <button id="connect-btn" class="primary">🔍 Connecter ma trottinette</button>
+
+    <div class="tip">
+      <p>Trottinette <b>allumée</b> et proche. Sélectionne-la dans la liste qui apparaît.</p>
+    </div>
+  </section>
+
+  <!-- Écran principal -->
+  <section id="app-screen" class="screen" hidden>
+    <header class="topbar">
+      <span>Ninebot Companion</span>
+      <button id="disconnect-btn" class="ghost">Déconnexion</button>
+    </header>
+
+    <div class="speedo">
+      <div class="big" id="speed">--</div>
+      <div class="unit">km/h</div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><span>Batterie</span><b id="battery">--</b></div>
+      <div class="card"><span>Tension</span><b id="voltage">--</b></div>
+      <div class="card"><span>Distance</span><b id="total">--</b></div>
+      <div class="card"><span>Température</span><b id="temp">--</b></div>
+    </div>
+
+    <div class="card info">
+      <div><span>N° série</span><b id="serial">—</b></div>
+      <div><span>Firmware</span><b id="firmware">—</b></div>
+      <div><span>Région</span><b id="region">—</b></div>
+    </div>
+
+    <h2>Région</h2>
+    <div id="regions" class="regions"></div>
+
+    <h2>Réglages</h2>
+    <label class="ack">
+      <input type="checkbox" id="ack" />
+      <span>Je comprends les risques (légalité, sécurité, garantie) et j'utilise ces réglages sur terrain privé.</span>
+    </label>
+    <div class="card">
+      <div class="row"><b id="limit-label">25 km/h</b><small id="limitCurrent"></small></div>
+      <input type="range" id="limit-slider" min="5" max="45" value="25" step="1" />
+      <button id="apply-limit" class="primary small">Appliquer la vitesse max</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="cruise" /> Régulateur de vitesse</label>
+    <label class="toggle"><input type="checkbox" id="tail" /> Feu arrière</label>
+
+    <div class="disclaimer">
+      Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie.
+      Modèles chiffrés récents (Max G30+) non pris en charge par cette version web.
+    </div>
+
+    <h2>Journal</h2>
+    <pre id="log"></pre>
+  </section>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

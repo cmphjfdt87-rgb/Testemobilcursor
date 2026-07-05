@@ -1,0 +1,12 @@
+{
+  "name": "Ninebot Companion",
+  "short_name": "Ninebot",
+  "description": "Contrôle Bluetooth pour trottinettes Ninebot / Xiaomi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a1a2f",
+  "theme_color": "#0a1a2f",
+  "icons": [
+    { "src": "./icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

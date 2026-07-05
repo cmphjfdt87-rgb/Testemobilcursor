@@ -65,6 +65,22 @@ Pas de Mac ? Voir **[INSTALL-SANS-PC.md](INSTALL-SANS-PC.md)** : compilation sur
 un Mac cloud (workflow GitHub Actions inclus) puis installation via **TestFlight**
 ou **AltStore PAL** (UE), le tout piloté depuis le navigateur de l'iPhone.
 
+## Version web gratuite (sans PC, sans compte) — dossier `web/`
+
+Pour un usage **immédiat, gratuit et sans PC**, une version **Web Bluetooth**
+est disponible dans `web/`. Elle contrôle réellement la trottinette (mêmes
+registres/protocole) et s'ouvre dans le navigateur **Bluefy** sur iPhone
+(gratuit sur l'App Store) — Safari ne gère pas le Bluetooth web.
+
+1. Active GitHub Pages : *Settings → Pages → Source = GitHub Actions* (le
+   workflow `deploy-pages.yml` publie le dossier `web/`).
+2. Sur l'iPhone, installe **Bluefy** depuis l'App Store.
+3. Ouvre l'URL Pages (`https://<utilisateur>.github.io/<depot>/`) dans Bluefy.
+4. Appuie sur *Connecter ma trottinette*, sélectionne-la, c'est prêt.
+
+Limite : les modèles récents chiffrés (Max G30+) ne sont pas gérés par la
+version web ; ils nécessitent l'app native + la couche `NinebotCrypto`.
+
 ## Architecture
 
 ```
