@@ -10,6 +10,12 @@
 <link rel="manifest" href="./manifest.json" />
 <link rel="apple-touch-icon" href="./icon.png" />
 <title>NBX — Ninebot Console</title>
+<script>
+/* Watchdog : si le gros script ne démarre pas en 4 s, on affiche un message */
+(function(){function w(){if(window.__nbxReady)return;var s=document.getElementById("boot-status");if(s){s.textContent="Script non chargé. Ferme l'onglet, rouvre le lien dans Bluefy, ou réessaie.";s.className="hint warn";}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(w,4000);});
+else setTimeout(w,4000);})();
+</script>
 <style>
 :root{
  --bg:#0b0b0d;--panel:#131318;--panel2:#17171d;--line:#26262e;--line2:#33333c;
@@ -175,13 +181,15 @@ details .body b{color:var(--ink)}
   </div>
  </div>
 
+ <div id="boot-status" class="hint" style="margin-top:0;text-align:center;font-size:13px">Chargement…</div>
+
  <div id="nobt" class="hint warn hidden">
   <b>Bluetooth web indisponible.</b> Sur iPhone, ouvre cette page dans <b>Bluefy</b> (App Store, gratuit) — Safari ne gère pas le Bluetooth.
  </div>
 
  <div class="fade" style="display:flex;flex-direction:column;gap:10px">
-  <button id="btn-connect" class="btn"><svg class="icon" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg> Connecter ma trottinette</button>
-  <button id="btn-connect-all" class="btn sub tiny">Afficher tous les appareils Bluetooth</button>
+  <button type="button" id="btn-connect" class="btn" onclick="if(window.connect)window.connect()"><svg class="icon" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg> Connecter ma trottinette</button>
+  <button type="button" id="btn-connect-all" class="btn sub tiny" onclick="if(window.connectAll)window.connectAll()">Rechercher tous les appareils Bluetooth</button>
  </div>
 
  <div class="steps fade">
@@ -450,11 +458,13 @@ function writeReg(reg,bytes){if(mode==="enc")send(encWriteFrame(reg,bytes));else
 
 /* =========================== CONNEXION =========================== */
 var FILTERS=[{namePrefix:"MIScooter"},{namePrefix:"Ninebot"},{namePrefix:"NB"},{namePrefix:"M365"},{namePrefix:"MI"},{namePrefix:"Mi "},{namePrefix:"Segway"},{namePrefix:"Xiaomi"},{namePrefix:"ES"},{namePrefix:"KickScooter"}];
-function connect(){go({filters:FILTERS,optionalServices:[UART]});}
+function connect(){go({acceptAllDevices:true,optionalServices:[UART]});} // ouvre TOUJOURS le menu Bluetooth
+function connectFiltered(){go({filters:FILTERS,optionalServices:[UART]});}
 function connectAll(){go({acceptAllDevices:true,optionalServices:[UART]});}
 function go(opts){
- if(!hasBT()){$("nobt").classList.remove("hidden");$("btn-connect").disabled=true;$("btn-connect-all").disabled=true;return;}
- navigator.bluetooth.requestDevice(opts).then(function(d){
+ if(!hasBT()){alert("Bluetooth web indisponible ici.\n\nSur iPhone : ouvre cette page dans l'app Bluefy (pas Safari).");return;}
+ try{
+  navigator.bluetooth.requestDevice(opts).then(function(d){
   dev=d;d.addEventListener("gattserverdisconnected",onDisc);
   showOverlay("Connexion…","Établissement du lien Bluetooth.",0);
   log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();
@@ -462,7 +472,8 @@ function go(opts){
  .then(function(svc){return Promise.all([svc.getCharacteristic(RX),svc.getCharacteristic(TX)]);})
  .then(function(cs){rx=cs[0];tx=cs[1];return tx.startNotifications();})
  .then(function(){tx.addEventListener("characteristicvaluechanged",onData);log("Lien établi. Détection du protocole…");startProbe();})
- .catch(function(e){hideOverlay();log("Erreur : "+e.message);});
+ .catch(function(e){hideOverlay();log("Erreur : "+e.message);if(e.message&&e.message.indexOf("cancel")<0)alert("Connexion impossible : "+e.message);});
+ }catch(e){hideOverlay();alert("Erreur Bluetooth : "+e.message);}
 }
 function onDisc(){clearInterval(poll);clearTimeout(probeTimer);if(handshake)clearInterval(handshake);rx=tx=null;mode=null;crypto=null;buf=[];log("Déconnecté.");$("screen-app").classList.add("hidden");$("screen-connect").classList.remove("hidden");hideOverlay();}
 function disconnect(){clearInterval(poll);if(dev&&dev.gatt.connected)dev.gatt.disconnect();}
@@ -622,19 +633,29 @@ function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=doc
  b.onclick=function(){if(confirm("Passer la région sur « "+r.name+" » ?\n"+r.note))setRegion(r.v);};w.appendChild(b);});}
 
 function init(){
- buildRegions();
- $("btn-connect").onclick=connect;
- $("btn-connect-all").onclick=connectAll;
- $("btn-disconnect").onclick=disconnect;
- var sl=$("limit");sl.oninput=function(){$("limit-val").textContent=sl.value;};
- $("btn-apply").onclick=function(){if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
- $("consent").onclick=function(){consentOn=!consentOn;$("consent").classList.toggle("on",consentOn);};
- $("sw-cruise").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-cruise").classList.contains("on");$("sw-cruise").classList.toggle("on",on);writeReg(REG.cruise,[on?1:0]);};
- $("sw-tail").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-tail").classList.contains("on");$("sw-tail").classList.toggle("on",on);writeReg(REG.tail,[on?1:0]);};
- $("btn-unlock").onclick=runDiag;
- if(!hasBT()){$("nobt").classList.remove("hidden");$("btn-connect").disabled=true;$("btn-connect-all").disabled=true;}
+ try{
+  buildRegions();
+  $("btn-connect").onclick=connect;
+  $("btn-connect-all").onclick=connectAll;
+  $("btn-disconnect").onclick=disconnect;
+  var sl=$("limit");if(sl)sl.oninput=function(){$("limit-val").textContent=sl.value;};
+  $("btn-apply").onclick=function(){if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
+  $("consent").onclick=function(){consentOn=!consentOn;$("consent").classList.toggle("on",consentOn);};
+  $("sw-cruise").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-cruise").classList.contains("on");$("sw-cruise").classList.toggle("on",on);writeReg(REG.cruise,[on?1:0]);};
+  $("sw-tail").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-tail").classList.contains("on");$("sw-tail").classList.toggle("on",on);writeReg(REG.tail,[on?1:0]);};
+  $("btn-unlock").onclick=runDiag;
+  if(!hasBT()){$("nobt").classList.remove("hidden");}
+  var st=$("boot-status");
+  if(st)st.textContent=hasBT()?"NBX v2.1 — Prêt. Appuie sur « Connecter ».":"NBX v2.1 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
+  log("Application prête.");
+  window.__nbxReady=true;
+ }catch(err){
+  var st=$("boot-status");if(st){st.textContent="Erreur au démarrage : "+err.message;st.classList.add("warn");}
+  alert("Erreur au démarrage : "+err.message);
+ }
 }
-document.addEventListener("DOMContentLoaded",init);
+window.connect=connect;window.connectAll=connectAll;window.disconnect=disconnect;
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 </script>
 </body>
 </html>
