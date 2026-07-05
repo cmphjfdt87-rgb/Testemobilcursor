@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Ninebot Companion utilise le Bluetooth pour se connecter à votre trottinette Ninebot/Xiaomi et lire ou modifier ses réglages.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Ninebot Companion utilise le Bluetooth pour communiquer avec votre trottinette.</string>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
+</dict>
+</plist>
