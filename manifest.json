@@ -1,12 +1,12 @@
 {
-  "name": "Pixel Rush",
-  "short_name": "Pixel Rush",
-  "description": "Runner pixel-art néon. Cours, saute, esquive les monstres !",
+  "name": "NEON DRIFT 3D",
+  "short_name": "Neon Drift",
+  "description": "Le runner de conduite 3D néon ultime. Esquive, collecte, débloque des bolides !",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1c2c",
-  "theme_color": "#1a1c2c",
+  "background_color": "#1a0b2e",
+  "theme_color": "#1a0b2e",
   "lang": "fr",
   "icons": [
     {
