@@ -96,6 +96,22 @@ pre{background:#071322;border:1px solid var(--border);border-radius:12px;padding
   </div>
   <label class="toggle"><input type="checkbox" id="cruise" /> Régulateur de vitesse</label>
   <label class="toggle"><input type="checkbox" id="tail" /> Feu arrière</label>
+
+  <h2>Débridage</h2>
+  <button id="diag-btn" class="primary">🔓 Débrider et vérifier ma trottinette</button>
+  <div id="diag" class="card" hidden style="margin-top:12px"></div>
+  <details id="fixbox" style="margin-top:12px">
+    <summary style="cursor:pointer;padding:8px 0">Ça ne marche pas ? → Solutions</summary>
+    <div class="tip">
+      <b>Avant tout :</b> trottinette <b>allumée, à l'arrêt</b>, sur béquille, <b>pas en charge</b>, et reste à moins d'1 m.<br><br>
+      <b>1.</b> Appuie sur « Déconnexion » puis reconnecte-toi et relance le débridage.<br>
+      <b>2.</b> Change d'abord la région sur <b>🌍 Global</b> (section Région), puis règle la vitesse.<br>
+      <b>3.</b> Réessaie 2–3 fois : certains firmwares n'acceptent l'écriture qu'après plusieurs tentatives.<br>
+      <b>4.</b> Si l'app dit « commande acceptée » mais l'écran reste à 25&nbsp;: c'est un <b>bridage firmware</b> (limite légale). Aller au-delà exige un <b>firmware custom</b> (via un vrai outil sur ordinateur type ScooterHacking Utility) — impossible et risqué depuis une app web, donc non proposé ici.<br>
+      <b>5.</b> Si l'app dit « ne répond pas »&nbsp;: ton modèle est <b>chiffré</b> (Max G30 / F / G2…) et n'est pas géré par cette version web.
+    </div>
+  </details>
+
   <div class="disclaimer">Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie. Modèles chiffrés récents (Max G30+) non pris en charge par cette version web.</div>
   <h2>Journal</h2>
   <pre id="log"></pre>
@@ -156,7 +172,7 @@ function write(reg,bytes){send(writeReq(reg,bytes));}
 function initialReads(){read(REG.serial,14);read(REG.firmware,2);read(REG.region,1);read(REG.speedLimit,2);refreshTelemetry();}
 function refreshTelemetry(){read(REG.battery,2);read(REG.voltage,2);read(REG.speed,2);read(REG.total,4);read(REG.temp,2);}
 function onNotify(e){var v=e.target.value;for(var i=0;i<v.byteLength;i++)rxBuffer.push(v.getUint8(i));var r;while((r=parse(rxBuffer))){apply(r.frame);rxBuffer=rxBuffer.slice(r.consumed);}if(rxBuffer.length>512)rxBuffer=[];}
-function apply(f){var p=f.payload,v;switch(f.register){
+function apply(f){var p=f.payload,v;state.responded=true;switch(f.register){
  case REG.serial:state.serial=String.fromCharCode.apply(null,p).replace(/[^\x20-\x7e]/g,"").trim();break;
  case REG.firmware:v=le16(p);if(v!=null)state.firmware=((v>>8)&0xf)+"."+((v>>4)&0xf)+"."+(v&0xf);break;
  case REG.battery:v=le16(p);if(v!=null)state.battery=v;break;
@@ -169,6 +185,56 @@ function apply(f){var p=f.payload,v;switch(f.register){
 }render();}
 function setRegion(val){var r=REGIONS.filter(function(x){return x.value===val;})[0];log("Écriture région → "+(r?r.name:val));write(REG.region,[val]);read(REG.region,1);}
 function setSpeed(k){var v=Math.max(1,Math.min(k,100));log("Écriture vitesse max → "+v+" km/h");write(REG.speedLimit,[v&0xff,(v>>8)&0xff]);read(REG.speedLimit,2);}
+
+// Débridage + vérification : lit l'état avant, applique, relit après, et
+// annonce clairement si la trottinette a accepté la commande.
+function runDiag(){
+ if(!$("ack").checked){alert("Coche d'abord la case de responsabilité (section Réglages).");return;}
+ var target=Number($("limit-slider").value);
+ var box=$("diag");box.hidden=false;
+ box.innerHTML="⏳ Diagnostic en cours… garde la trottinette allumée et à l'arrêt (~6 s).";
+ state.responded=false;
+ read(REG.region,1);read(REG.speedLimit,2);read(REG.firmware,2);
+ setTimeout(function(){
+  var before={region:state.region,limit:state.speedLimit,responded:state.responded};
+  write(REG.region,[0x00]);
+  write(REG.speedLimit,[target&0xff,(target>>8)&0xff]);
+  setTimeout(function(){
+   read(REG.region,1);read(REG.speedLimit,2);
+   setTimeout(function(){renderDiag(before,target);},1500);
+  },700);
+ },1800);
+}
+function renderDiag(before,target){
+ var box=$("diag");
+ if(!state.responded){
+  box.innerHTML="<b>❌ Ta trottinette ne répond pas aux commandes.</b><br><br>"+
+   "C'est très probablement un modèle <b>récent chiffré</b> (Ninebot Max G30, F, G2/GT…). "+
+   "Cette version web ne peut pas les débrider — il faudrait l'app native + le déchiffrement du firmware.<br><br>"+
+   "👉 Ouvre « Ça ne marche pas ? → Solutions » ci-dessous.";
+  $("fixbox").open=true;return;
+ }
+ var regionNow=state.region,limitNow=state.speedLimit;
+ var regionChanged=(before.region!==regionNow&&regionNow===0x00);
+ var limitAccepted=(limitNow===target)||(before.limit!==limitNow&&limitNow!=null);
+ var html="<b>Résultat du diagnostic</b><br><br>";
+ html+="🛰️ Modèle : "+(state.firmware?("firmware "+state.firmware):"protocole ouvert (M365/ES)")+"<br>";
+ html+=(regionChanged?"✅":"▫️")+" Région → "+(regionNow===0x00?"Global (déverrouillée)":("code "+regionNow))+"<br>";
+ html+=(limitAccepted?"✅":"❌")+" Vitesse max enregistrée : "+(limitNow!=null?limitNow+" km/h":"—")+" (demandé "+target+")<br><br>";
+ if(limitAccepted||regionChanged){
+  html+="<b>✅ Ta trottinette ACCEPTE le débridage&nbsp;!</b><br>"+
+   "La commande a bien été prise en compte.<br><br>"+
+   "⚠️ Si l'écran affiche encore <b>25</b>, c'est que ton firmware impose une <b>limite légale fixe</b> par-dessus. "+
+   "Pour dépasser cette limite matérielle il faut un <b>firmware custom</b> (outil sur ordinateur), non proposé ici pour ne pas risquer d'abîmer ta trottinette. "+
+   "Le passage en région <b>Global</b> reste le levier le plus efficace et le plus sûr — refais un tour pour vérifier la vitesse réelle.";
+ } else {
+  html+="<b>⚠️ Ta trottinette répond, mais n'a pas pris en compte l'écriture.</b><br>"+
+   "Ce registre n'est peut-être pas celui utilisé par ton firmware.<br><br>"+
+   "👉 Essaie les solutions ci-dessous (arrêt complet, reconnexion, plusieurs tentatives).";
+  $("fixbox").open=true;
+ }
+ box.innerHTML=html;
+}
 function render(){
  $("speed").textContent=state.speed!=null?state.speed.toFixed(1):"--";
  $("battery").textContent=state.battery!=null?state.battery+" %":"--";
@@ -191,6 +257,7 @@ function init(){
  $("disconnect-btn").onclick=disconnect;
  var sl=$("limit-slider");sl.oninput=function(){$("limit-label").textContent=sl.value+" km/h";};
  $("apply-limit").onclick=function(){if(!$("ack").checked){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
+ $("diag-btn").onclick=runDiag;
  $("cruise").onchange=function(e){if($("ack").checked)write(REG.cruise,[e.target.checked?1:0]);};
  $("tail").onchange=function(e){if($("ack").checked)write(REG.tail,[e.target.checked?1:0]);};
  if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;$("connect-all-btn").hidden=true;}
