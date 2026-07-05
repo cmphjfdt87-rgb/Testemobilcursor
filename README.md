@@ -4,7 +4,18 @@ Jeu mobile original au tap — inverse ta trajectoire, collecte les étoiles, é
 
 ## 🎮 Jouer maintenant
 
-**Lien direct :** https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@main/index.html
+**Lien direct (Safari) :** https://raw.githack.com/cmphjfdt87-rgb/Testemobilcursor/main/index.html
+
+> Si une page de confirmation s'affiche, appuie sur **« Open the page »**.
+
+**Lien permanent (après activation GitHub Pages) :** https://cmphjfdt87-rgb.github.io/Testemobilcursor/
+
+### Activer GitHub Pages (1 minute, une seule fois)
+
+1. Va sur https://github.com/cmphjfdt87-rgb/Testemobilcursor/settings/pages
+2. **Source** → **Deploy from a branch**
+3. Branche **gh-pages** → dossier **/ (root)** → **Save**
+4. Attends 1-2 minutes, puis ouvre le lien permanent ci-dessus
 
 ## 📲 Installer sur iPhone
 
