@@ -59,6 +59,12 @@ installable sur iPhone.
 
 > iOS 17.0 minimum.
 
+### Installer sans PC / sans App Store
+
+Pas de Mac ? Voir **[INSTALL-SANS-PC.md](INSTALL-SANS-PC.md)** : compilation sur
+un Mac cloud (workflow GitHub Actions inclus) puis installation via **TestFlight**
+ou **AltStore PAL** (UE), le tout piloté depuis le navigateur de l'iPhone.
+
 ## Architecture
 
 ```
