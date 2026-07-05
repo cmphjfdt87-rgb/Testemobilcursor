@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "name": "eclipse-game",
+  "builds": [
+    { "src": "**/*", "use": "@vercel/static" }
+  ]
+}

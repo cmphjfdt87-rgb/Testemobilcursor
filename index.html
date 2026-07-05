@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Éclipse">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="description" content="Éclipse — un jeu mobile au tap. Inverse ta trajectoire, collecte les étoiles, évite les zones sombres.">
+  <title>Éclipse</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <div id="hud" class="hidden">
+      <div id="score">0</div>
+      <div id="best">Record : 0</div>
+    </div>
+
+    <div id="overlay">
+      <div id="menu" class="screen active">
+        <div class="logo">ÉCLIPSE</div>
+        <p class="tagline">Inverse ta trajectoire. Collecte la lumière.</p>
+        <button id="play-btn" class="btn primary">Jouer</button>
+        <div class="howto">
+          <span>👆 Touche l'écran pour inverser le sens</span>
+          <span>⭐ Collecte les étoiles</span>
+          <span>🌑 Évite les zones d'éclipse</span>
+        </div>
+      </div>
+
+      <div id="gameover" class="screen">
+        <div class="logo small">ÉCLIPSE</div>
+        <p class="result-label">Score</p>
+        <div id="final-score">0</div>
+        <p id="new-record" class="new-record hidden">Nouveau record ! 🎉</p>
+        <button id="retry-btn" class="btn primary">Rejouer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
