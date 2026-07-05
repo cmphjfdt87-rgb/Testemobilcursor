@@ -67,10 +67,19 @@ ou **AltStore PAL** (UE), le tout piloté depuis le navigateur de l'iPhone.
 
 ## Version web gratuite (sans PC, sans compte) — dossier `web/`
 
-Pour un usage **immédiat, gratuit et sans PC**, une version **Web Bluetooth**
-est disponible dans `web/`. Elle contrôle réellement la trottinette (mêmes
-registres/protocole) et s'ouvre dans le navigateur **Bluefy** sur iPhone
-(gratuit sur l'App Store) — Safari ne gère pas le Bluetooth web.
+Pour un usage **immédiat, gratuit et sans PC**, une console **Web Bluetooth**
+(« NBX Console ») est disponible dans `web/` (`index.html`, entièrement
+autonome). Elle contrôle réellement la trottinette et s'ouvre dans le navigateur
+**Bluefy** sur iPhone (gratuit sur l'App Store) — Safari ne gère pas le
+Bluetooth web.
+
+Interface soignée (jauge animée, thème sombre monochrome), détection auto du
+protocole, et **support expérimental du protocole chiffré Ninebot** (E-series /
+Max) : portage JavaScript de `scooterhacking/NinebotCrypto` (AES-128 + SHA-1,
+vecteurs FIPS-197 / SHA-1 validés, appairage PRE_COMM/SET_PWD/AUTH). La lecture
+de télémétrie chiffrée est tentée automatiquement ; l'**écriture** (débridage)
+reste bloquée par le firmware sur E-series récents (downgrade requis via
+ScooterHacking Utility, Android).
 
 1. Active GitHub Pages : *Settings → Pages → Source = GitHub Actions* (le
    workflow `deploy-pages.yml` publie le dossier `web/`).

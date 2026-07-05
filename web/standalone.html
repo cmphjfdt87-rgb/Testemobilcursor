@@ -2,282 +2,637 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0a1a2f" />
-<title>Ninebot Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#0b0b0d" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="NBX" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icon.png" />
+<title>NBX — Ninebot Console</title>
 <style>
-:root{--bg:#0a1a2f;--bg2:#0f2540;--accent:#00d49c;--text:#eaf2f7;--muted:#8ba3b8;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.12)}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,var(--bg2),var(--bg));color:var(--text);min-height:100vh;padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px)}
-.screen{max-width:520px;margin:0 auto}
-.hero{text-align:center;padding:40px 0 24px}
-.logo{width:96px;height:96px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
-h1{margin:16px 0 4px;font-size:26px}
-.subtitle{color:var(--muted);margin:0}
-button{font:inherit;cursor:pointer;border:none;border-radius:14px}
-.primary{width:100%;padding:16px;background:var(--accent);color:#04231b;font-weight:700;font-size:17px;margin:8px 0}
-.primary.small{padding:12px;font-size:15px;margin-top:12px}
-.ghost{background:transparent;color:var(--accent);padding:8px 12px}
-.tip,.warning{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:16px;color:var(--muted);font-size:14px}
-.warning{border-color:#f0a500;color:#ffd98a}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 0 8px;font-weight:700}
-.speedo{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px 0;margin:8px 0 16px}
-.speedo .big{font-size:68px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-.speedo .unit{color:var(--muted);margin-top:6px}
+:root{
+ --bg:#0b0b0d;--panel:#131318;--panel2:#17171d;--line:#26262e;--line2:#33333c;
+ --ink:#f4f4f6;--dim:#9a9aa6;--faint:#63636e;--ok:#e9e9ee;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%}
+body{
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif;
+ background:var(--bg);color:var(--ink);letter-spacing:.01em;
+ -webkit-font-smoothing:antialiased;
+ background-image:radial-gradient(120% 60% at 50% -10%,#1b1b22 0%,#0b0b0d 60%);
+ min-height:100%;
+}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px)}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:1px solid var(--line2);
+ background:var(--ink);color:#0b0b0d;font-weight:650;font-size:16px;padding:16px;border-radius:16px;cursor:pointer;
+ transition:transform .12s ease,opacity .2s ease}
+.btn:active{transform:scale(.98)}
+.btn.sub{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.tiny{padding:11px;font-size:14px;font-weight:600}
+.btn:disabled{opacity:.4}
+.icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.icon.sm{width:16px;height:16px}
+.icon.lg{width:30px;height:30px;stroke-width:1.4}
+
+/* ---------- CONNECT SCREEN ---------- */
+#screen-connect{min-height:calc(100vh - 80px);display:flex;flex-direction:column;justify-content:center;gap:26px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.mark{width:96px;height:96px;border-radius:26px;border:1px solid var(--line2);background:linear-gradient(160deg,#1c1c23,#0e0e12);
+ display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.mark:before{content:"";position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 0%,rgba(255,255,255,.10),transparent 70%)}
+.mark .icon{width:52px;height:52px;stroke-width:1.3}
+.wordmark{font-size:30px;font-weight:750;letter-spacing:-.02em}
+.tag{color:var(--dim);font-size:15px;line-height:1.5;max-width:320px}
+.pulse{position:relative}
+.pulse:after{content:"";position:absolute;inset:-4px;border-radius:20px;border:1px solid var(--line2);
+ animation:pulse 2.2s ease-out infinite;opacity:0}
+@keyframes pulse{0%{transform:scale(.98);opacity:.7}100%{transform:scale(1.06);opacity:0}}
+.hint{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:16px;color:var(--dim);font-size:14px;line-height:1.6}
+.hint b{color:var(--ink);font-weight:600}
+.warn{border-color:#4a4a20;background:#1a1a10;color:#d8d8a0}
+.steps{display:flex;gap:14px;margin-top:2px}
+.step{flex:1;text-align:center;color:var(--faint);font-size:12px;line-height:1.5}
+.step .n{display:block;width:26px;height:26px;line-height:26px;margin:0 auto 6px;border-radius:50%;border:1px solid var(--line2);color:var(--dim);font-weight:600}
+
+/* ---------- APP SCREEN ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.topbar .id{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:#3ad07a;box-shadow:0 0 0 0 rgba(58,208,122,.5);animation:live 2s infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 rgba(58,208,122,.45)}70%{box-shadow:0 0 0 7px rgba(58,208,122,0)}100%{box-shadow:0 0 0 0 rgba(58,208,122,0)}}
+.linkbtn{background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+
+/* speedometer */
+.gauge{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ padding:8px 0 18px;margin-bottom:18px}
+.gauge svg{width:250px;height:250px;transform:rotate(135deg)}
+.gauge .track{stroke:var(--line);fill:none;stroke-width:12;stroke-linecap:round}
+.gauge .fill{stroke:var(--ink);fill:none;stroke-width:12;stroke-linecap:round;
+ transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
+.gauge .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.gauge .val{font-size:64px;font-weight:750;line-height:1;letter-spacing:-.03em}
+.gauge .u{font-size:13px;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
-.grid .card span{display:block;color:var(--muted);font-size:13px}
-.grid .card b{font-size:22px;font-variant-numeric:tabular-nums}
-.card.info{margin-top:12px;display:grid;gap:8px}
-.card.info div{display:flex;justify-content:space-between}
-.card.info span{color:var(--muted)}
-h2{margin:24px 0 10px;font-size:18px}
-.regions{display:grid;gap:10px}
-.region-btn{display:flex;align-items:center;gap:12px;text-align:left;background:var(--card);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:14px;width:100%}
-.region-btn.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.region-btn .flag{font-size:26px}
-.region-btn small{color:var(--muted)}
-.ack{display:flex;gap:10px;font-size:14px;color:var(--muted);margin-bottom:12px;align-items:flex-start}
-.ack input{margin-top:3px}
-.row{display:flex;justify-content:space-between;align-items:baseline}
-.row b{font-size:22px}.row small{color:var(--muted)}
-input[type=range]{width:100%;margin:12px 0;accent-color:var(--accent)}
-.toggle{display:flex;gap:10px;align-items:center;padding:12px 0}
-.disclaimer{color:#ffb37a;font-size:13px;margin-top:16px;line-height:1.5}
-pre{background:#071322;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:12px;max-height:200px;overflow:auto;white-space:pre-wrap}
-.svglogo{width:96px;height:96px}
+.cell{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:15px;
+ display:flex;flex-direction:column;gap:12px;transition:border-color .2s}
+.cell .top{display:flex;align-items:center;justify-content:space-between;color:var(--dim)}
+.cell .lab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.cell .big{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.cell .big small{font-size:14px;color:var(--dim);font-weight:500;margin-left:2px}
+
+.section{margin-top:26px}
+.section>.eyebrow{margin-bottom:12px;display:block}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden}
+.rowline{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.rowline:last-child{border-bottom:none}
+.rowline .k{color:var(--dim);font-size:14px}
+.rowline .v{font-weight:600;font-size:14px}
+
+/* region segmented */
+.regions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reg{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px;cursor:pointer;text-align:left;
+ color:var(--ink);transition:border-color .2s,background .2s,transform .1s;display:flex;gap:12px;align-items:center}
+.reg:active{transform:scale(.98)}
+.reg.on{border-color:var(--ink);background:var(--panel2)}
+.reg .pill{min-width:44px;height:28px;border:1px solid var(--line2);border-radius:8px;display:flex;align-items:center;justify-content:center;
+ font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--dim)}
+.reg.on .pill{color:var(--ink);border-color:var(--ink)}
+.reg .rt{font-size:14px;font-weight:600}
+.reg .rn{display:block;font-size:11px;color:var(--faint);font-weight:500;margin-top:2px}
+
+/* slider */
+.tuner{padding:18px 16px}
+.tuner .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.tuner .num{font-size:40px;font-weight:750;letter-spacing:-.02em}
+.tuner .num small{font-size:15px;color:var(--dim);font-weight:500}
+.tuner .cur{font-size:12px;color:var(--faint)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--line2);border-radius:3px;outline:none;margin:10px 0 18px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--ink);
+ border:5px solid #0b0b0d;box-shadow:0 0 0 1px var(--line2);cursor:pointer}
+
+/* switches */
+.sw{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.sw:last-child{border-bottom:none}
+.sw .k{font-size:14px}
+.toggle{position:relative;width:46px;height:28px;border-radius:20px;background:var(--line2);transition:background .2s;cursor:pointer;flex:none}
+.toggle:before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.toggle.on{background:var(--ok)}
+.toggle.on:before{transform:translateX(18px);background:#0b0b0d}
+
+.consent{display:flex;gap:12px;align-items:flex-start;padding:15px 16px;color:var(--dim);font-size:13px;line-height:1.5}
+.check{flex:none;width:24px;height:24px;border-radius:7px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:1px}
+.check.on{background:var(--ink);border-color:var(--ink)}
+.check .icon{width:14px;height:14px;stroke:#0b0b0d;stroke-width:2.4;opacity:0}
+.check.on .icon{opacity:1}
+
+.note{color:var(--faint);font-size:12px;line-height:1.6;margin-top:12px}
+details{border:1px solid var(--line);background:var(--panel);border-radius:14px;margin-top:12px;overflow:hidden}
+summary{padding:14px 16px;cursor:pointer;font-size:14px;font-weight:600;list-style:none;display:flex;align-items:center;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"";width:8px;height:8px;border-right:1.6px solid var(--dim);border-bottom:1.6px solid var(--dim);transform:rotate(45deg);transition:transform .2s}
+details[open] summary:after{transform:rotate(225deg)}
+details .body{padding:0 16px 16px;color:var(--dim);font-size:13px;line-height:1.65}
+details .body b{color:var(--ink)}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dim);
+ background:#08080a;border:1px solid var(--line);border-radius:12px;padding:12px;max-height:150px;overflow:auto;white-space:pre-wrap;line-height:1.6}
+
+/* pairing overlay */
+.overlay{position:fixed;inset:0;background:rgba(6,6,8,.86);backdrop-filter:blur(6px);display:none;
+ align-items:center;justify-content:center;padding:24px;z-index:50}
+.overlay.show{display:flex}
+.pair{max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
+.spinner{width:56px;height:56px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--ink);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pair h3{font-size:19px;font-weight:700}
+.pair p{color:var(--dim);font-size:14px;line-height:1.6}
+.pstat{display:flex;gap:8px;margin-top:4px}
+.pstat i{width:8px;height:8px;border-radius:50%;background:var(--line2);transition:background .3s}
+.pstat i.on{background:var(--ink)}
+.powerbtn{margin-top:6px;border:1px solid var(--line2);border-radius:14px;padding:14px 18px;display:flex;gap:12px;align-items:center;color:var(--ink);font-size:14px;animation:breathe 1.8s ease-in-out infinite}
+@keyframes breathe{0%,100%{border-color:var(--line2)}50%{border-color:var(--ink)}}
+
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hidden{display:none !important}
 </style>
 </head>
 <body>
-<section id="scan-screen" class="screen">
-  <div class="hero">
-    <svg class="svglogo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00d49c"/><stop offset="1" stop-color="#0a1a2f"/></linearGradient></defs>
-      <rect width="100" height="100" rx="22" fill="url(#g)"/>
-      <circle cx="30" cy="72" r="8" fill="none" stroke="#fff" stroke-width="4"/>
-      <circle cx="72" cy="72" r="8" fill="none" stroke="#fff" stroke-width="4"/>
-      <path d="M30 72 L58 72 L64 36 L74 36" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M64 36 L64 24" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-    </svg>
-    <h1>Ninebot Companion</h1>
-    <p class="subtitle">Contrôle ta trottinette Ninebot / Xiaomi en Bluetooth</p>
+<div class="wrap">
+
+<!-- ============ CONNECT ============ -->
+<section id="screen-connect">
+ <div class="brand fade">
+  <div class="mark pulse">
+   <svg class="icon" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M6 18h7l3-11h3"/><path d="M13 7l-1.5 5"/></svg>
   </div>
-  <div id="nobt" class="warning" hidden>
-    <strong>Bluetooth web non disponible dans ce navigateur.</strong>
-    <p>Sur iPhone, ouvre cette page dans <b>Bluefy</b> (navigateur gratuit sur l'App Store) : Safari ne gère pas le Bluetooth.</p>
+  <div>
+   <div class="wordmark">NBX Console</div>
+   <div class="tag">Diagnostic et déverrouillage sans fil pour trottinettes Ninebot &amp; Xiaomi.</div>
   </div>
-  <button id="connect-btn" class="primary">🛴 Chercher ma trottinette</button>
-  <button id="connect-all-btn" class="ghost" style="width:100%;padding:12px">Afficher tous les appareils Bluetooth</button>
-  <div class="tip"><p><b>1.</b> Allume ta trottinette et reste à côté.<br><b>2.</b> Appuie sur « Chercher ma trottinette ».<br><b>3.</b> Elle apparaît sous un nom comme <b>MIScooter…</b>, <b>Ninebot…</b> ou <b>M365…</b>. Sélectionne-la.<br><br>Si rien n'apparaît : réveille la trottinette (appuie sur son bouton) puis réessaie, ou utilise « Afficher tous les appareils ». Les lignes avec un code (ex. 7068F751-…) sont d'autres objets Bluetooth autour de toi, pas ta trottinette.</p></div>
+ </div>
+
+ <div id="nobt" class="hint warn hidden">
+  <b>Bluetooth web indisponible.</b> Sur iPhone, ouvre cette page dans <b>Bluefy</b> (App Store, gratuit) — Safari ne gère pas le Bluetooth.
+ </div>
+
+ <div class="fade" style="display:flex;flex-direction:column;gap:10px">
+  <button id="btn-connect" class="btn"><svg class="icon" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg> Connecter ma trottinette</button>
+  <button id="btn-connect-all" class="btn sub tiny">Afficher tous les appareils Bluetooth</button>
+ </div>
+
+ <div class="steps fade">
+  <div class="step"><span class="n">1</span>Allume la trottinette</div>
+  <div class="step"><span class="n">2</span>Reste à moins d'1 m</div>
+  <div class="step"><span class="n">3</span>Choisis-la dans la liste</div>
+ </div>
 </section>
 
-<section id="app-screen" class="screen" hidden>
-  <header class="topbar"><span>Ninebot Companion</span><button id="disconnect-btn" class="ghost">Déconnexion</button></header>
-  <div class="speedo"><div class="big" id="speed">--</div><div class="unit">km/h</div></div>
-  <div class="grid">
-    <div class="card"><span>Batterie</span><b id="battery">--</b></div>
-    <div class="card"><span>Tension</span><b id="voltage">--</b></div>
-    <div class="card"><span>Distance</span><b id="total">--</b></div>
-    <div class="card"><span>Température</span><b id="temp">--</b></div>
-  </div>
-  <div class="card info">
-    <div><span>N° série</span><b id="serial">—</b></div>
-    <div><span>Firmware</span><b id="firmware">—</b></div>
-    <div><span>Région</span><b id="region">—</b></div>
-  </div>
-  <h2>Région</h2>
-  <div id="regions" class="regions"></div>
-  <h2>Réglages</h2>
-  <label class="ack"><input type="checkbox" id="ack" /><span>Je comprends les risques (légalité, sécurité, garantie) et j'utilise ces réglages sur terrain privé.</span></label>
-  <div class="card">
-    <div class="row"><b id="limit-label">25 km/h</b><small id="limitCurrent"></small></div>
-    <input type="range" id="limit-slider" min="5" max="45" value="25" step="1" />
-    <button id="apply-limit" class="primary small">Appliquer la vitesse max</button>
-  </div>
-  <label class="toggle"><input type="checkbox" id="cruise" /> Régulateur de vitesse</label>
-  <label class="toggle"><input type="checkbox" id="tail" /> Feu arrière</label>
+<!-- ============ APP ============ -->
+<section id="screen-app" class="hidden">
+ <div class="topbar">
+  <div class="id"><span class="dot"></span><span class="eyebrow" id="devname">Connecté</span></div>
+  <button class="linkbtn" id="btn-disconnect"><svg class="icon sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg> Déconnecter</button>
+ </div>
 
-  <h2>Débridage</h2>
-  <button id="diag-btn" class="primary">🔓 Débrider et vérifier ma trottinette</button>
-  <div id="diag" class="card" hidden style="margin-top:12px"></div>
+ <div class="gauge">
+  <svg viewBox="0 0 200 200">
+   <circle class="track" cx="100" cy="100" r="86" stroke-dasharray="405 540" />
+   <circle class="fill" id="gauge-fill" cx="100" cy="100" r="86" stroke-dasharray="405 540" stroke-dashoffset="405" />
+  </svg>
+  <div class="center">
+   <div class="val mono" id="speed">0.0</div>
+   <div class="u">km / h</div>
+  </div>
+ </div>
 
-  <details style="margin-top:12px">
-    <summary style="cursor:pointer;padding:8px 0"><b>🛴 Ma trottinette est une Ninebot E-series (E22 / E25 / E45 / E45E)</b></summary>
-    <div class="tip">
-      Ces modèles sont <b>chiffrés</b> : cette app (et toute app iPhone) ne peut pas les débrider. La seule méthode qui marche passe par <b>ScooterHacking Utility</b>, une app <b>Android gratuite</b> (emprunte un téléphone Android).<br><br>
-      <b>Vitesse max réelle une fois débridée : ~29–30 km/h</b> sur E45 (le « 45 » n'est PAS la vitesse). Le matériel ne peut pas faire 45 km/h.<br><br>
-      <b>ℹ️ Roue en l'air, l'écran monte à 35 puis retombe à 25 ?</b> C'est normal : à vide, sans charge ni ton poids, le moteur s'emballe et affiche plus. Sous charge (en roulant), le limiteur ramène à 25. Ça ne veut pas dire qu'elle roulera à 35.<br><br>
-      <b>Ton firmware est DRV 2.7.2</b> → le changement de série est <b>bloqué</b> depuis la 2.7.1. Il faut d'abord downgrader :<br>
-      <b>1.</b> Installe SHU : <b>utility.cfw.sh/apk</b> (sur Android).<br>
-      <b>2.</b> Dans SHU : <i>Load Original → DRV → DRV271</i> (version modifiée qui autorise le downgrade) → <b>FLASH</b>.<br>
-      <b>3.</b> Puis <i>Load Original → DRV → DRV255</i> → <b>FLASH</b>.<br>
-      <b>4.</b> Bouton <b>« Change Region »</b> → choisis le preset <b>E45 30 km/h</b>.<br>
-      <b>5.</b> Laisse redémarrer, passe en <b>mode Sport (S)</b> → ~30 km/h.<br><br>
-      Guide complet illustré : <b>scooterhack.in/eseriesunlock</b><br><br>
-      ⚠️ Flasher un firmware comporte un petit risque. Suis le guide à la lettre, batterie chargée, et n'utilise <b>pas</b> de CFW esx.cfw.sh avant (ça bloque cette méthode).
+ <div class="grid">
+  <div class="cell">
+   <div class="top"><span class="lab">Batterie</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M20 10v4"/><path d="M6 12h6"/></svg></div>
+   <div class="big mono" id="battery">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Tension</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+   <div class="big mono" id="voltage">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Distance</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 19V9l6-5 6 5v10"/></svg></div>
+   <div class="big mono" id="distance">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Température</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M12 4a2 2 0 0 1 2 2v7a4 4 0 1 1-4 0V6a2 2 0 0 1 2-2z"/></svg></div>
+   <div class="big mono" id="temp">—</div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Appareil</span>
+  <div class="panel">
+   <div class="rowline"><span class="k">Modèle</span><span class="v" id="model">—</span></div>
+   <div class="rowline"><span class="k">N° de série</span><span class="v mono" id="serial">—</span></div>
+   <div class="rowline"><span class="k">Firmware</span><span class="v mono" id="fw">—</span></div>
+   <div class="rowline"><span class="k">Protocole</span><span class="v" id="proto">—</span></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Région</span>
+  <div class="regions" id="regions"></div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Réglages</span>
+  <div class="panel">
+   <div class="consent">
+    <span class="check" id="consent"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></span>
+    <span>Je comprends les risques (légalité, sécurité, garantie) et j'agis sur terrain privé. Les écritures sont bloquées tant que ceci n'est pas coché.</span>
+   </div>
+   <div class="tuner" style="border-top:1px solid var(--line)">
+    <div class="head">
+     <div class="num mono"><span id="limit-val">25</span><small> km/h</small></div>
+     <div class="cur" id="limit-cur"></div>
     </div>
-  </details>
-  <details id="fixbox" style="margin-top:12px">
-    <summary style="cursor:pointer;padding:8px 0">Ça ne marche pas ? → Solutions</summary>
-    <div class="tip">
-      <b>Avant tout :</b> trottinette <b>allumée, à l'arrêt</b>, sur béquille, <b>pas en charge</b>, et reste à moins d'1 m.<br><br>
-      <b>1.</b> Appuie sur « Déconnexion » puis reconnecte-toi et relance le débridage.<br>
-      <b>2.</b> Change d'abord la région sur <b>🌍 Global</b> (section Région), puis règle la vitesse.<br>
-      <b>3.</b> Réessaie 2–3 fois : certains firmwares n'acceptent l'écriture qu'après plusieurs tentatives.<br>
-      <b>4.</b> Si l'app dit « commande acceptée » mais l'écran reste à 25&nbsp;: c'est un <b>bridage firmware</b> (limite légale). Aller au-delà exige un <b>firmware custom</b> (via un vrai outil sur ordinateur type ScooterHacking Utility) — impossible et risqué depuis une app web, donc non proposé ici.<br>
-      <b>5.</b> Si l'app dit « ne répond pas »&nbsp;: ton modèle est <b>chiffré</b> (Max G30 / F / G2…) et n'est pas géré par cette version web.
-    </div>
+    <input type="range" id="limit" min="5" max="45" step="1" value="25" />
+    <button class="btn tiny" id="btn-apply"><svg class="icon sm" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg> Appliquer la vitesse</button>
+   </div>
+   <div class="sw"><span class="k">Régulateur de vitesse</span><span class="toggle" id="sw-cruise"></span></div>
+   <div class="sw"><span class="k">Feu arrière</span><span class="toggle" id="sw-tail"></span></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Déverrouillage</span>
+  <button class="btn" id="btn-unlock"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.6-1.5"/></svg> Déverrouiller &amp; vérifier</button>
+  <div class="panel hidden" id="diag" style="margin-top:12px"><div class="body" style="padding:16px" id="diag-body"></div></div>
+
+  <details id="eblock">
+   <summary>Ma trottinette est une Ninebot E-series (E22 / E25 / E45 / E45E)</summary>
+   <div class="body">
+    Ces modèles sont <b>chiffrés</b>. Cette console tente une connexion chiffrée (expérimentale) pour lire les données, mais le firmware récent bloque l'écriture de la région <b>tant que le firmware n'est pas rétrogradé</b>.<br><br>
+    <b>Vitesse réelle une fois débridée : ~30 km/h</b> sur E45 (le « 45 » n'est pas la vitesse).<br><br>
+    <b>Roue en l'air = 35 puis 25 ?</b> Normal : à vide le moteur s'emballe ; en charge le limiteur ramène à 25.<br><br>
+    <b>Firmware DRV 2.7.x → downgrade requis</b> via <b>ScooterHacking Utility</b> (Android, gratuit) :<br>
+    1. <b>utility.cfw.sh/apk</b><br>
+    2. Load Original → DRV → <b>DRV271</b> → FLASH<br>
+    3. Load Original → DRV → <b>DRV255</b> → FLASH<br>
+    4. <b>Change Region</b> → preset <b>E45 30 km/h</b><br>
+    5. Redémarre, mode <b>Sport</b> → ~30 km/h<br>
+    Guide : <b>scooterhack.in/eseriesunlock</b>
+   </div>
   </details>
 
-  <div class="disclaimer">Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie. Modèles chiffrés récents (Max G30+) non pris en charge par cette version web.</div>
-  <h2>Journal</h2>
-  <pre id="log"></pre>
+  <details id="fixblock">
+   <summary>Ça ne marche pas ?</summary>
+   <div class="body">
+    Trottinette <b>allumée, à l'arrêt</b>, sur béquille, <b>hors charge</b>, à moins d'1 m.<br>
+    1. Déconnecte puis reconnecte et relance.<br>
+    2. Passe d'abord la région sur <b>Global</b>.<br>
+    3. Réessaie 2–3 fois (certains firmwares n'acceptent qu'après plusieurs essais).<br>
+    4. « Accepté » mais écran à 25 = <b>bridage firmware</b> → downgrade requis (voir bloc E-series).<br>
+    5. « Ne répond pas » = modèle chiffré non pris en charge en écriture.
+   </div>
+  </details>
+
+  <div class="note">Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie.</div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Journal</span>
+  <div class="log" id="log"></div>
+ </div>
 </section>
+</div>
+
+<!-- pairing overlay -->
+<div class="overlay" id="overlay">
+ <div class="pair">
+  <div class="spinner" id="pair-spin"></div>
+  <h3 id="pair-title">Connexion…</h3>
+  <p id="pair-msg">Recherche du protocole de ta trottinette.</p>
+  <div class="pstat"><i id="ps0"></i><i id="ps1"></i><i id="ps2"></i></div>
+  <div class="powerbtn hidden" id="pair-power">
+   <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.5 7a8 8 0 1 0 11 0"/></svg>
+   Appuie sur le bouton d'alimentation de la trottinette
+  </div>
+ </div>
+</div>
 
 <script>
-// ---- Protocole Xiaomi/Ninebot (familles texte clair : M365/1S/Pro/ES) ----
-var UART_SERVICE="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-var UART_RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-var UART_TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
-var ADDR={app:0x3d,esc:0x20};
-var CMD={read:0x01,write:0x03};
-var REG={serial:0x10,firmware:0x1a,battery:0x32,voltage:0x34,speed:0xb5,total:0x29,temp:0x3e,region:0x72,speedLimit:0x74,cruise:0x7c,tail:0x7d};
+"use strict";
+/* =========================================================================
+   AES-128 (encrypt block only) — validé contre le vecteur FIPS-197
+   ========================================================================= */
+var AES_SBOX_HEX="637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0"+
+"b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b275"+
+"09832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cf"+
+"d0efaafb434d338545f9027f503c9fa851a3408f929d38f5bcb6da2110fff3d2"+
+"cd0c13ec5f974417c4a77e3d645d197360814fdc222a908846eeb814de5e0bdb"+
+"e0323a0a4906245cc2d3ac629195e479e7c8376d8dd54ea96c56f4ea657aae08"+
+"ba78252e1ca6b4c6e8dd741f4bbd8b8a703eb5664803f60e613557b986c11d9e"+
+"e1f8981169d98e949b1e87e9ce5528df8ca1890dbfe6426841992d0fb054bb16";
+var AES_SBOX=(function(){var s=new Uint8Array(256);for(var i=0;i<256;i++)s[i]=parseInt(AES_SBOX_HEX.substr(i*2,2),16);return s;})();
+var AES_RCON=[0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36];
+function xtime(a){a<<=1;if(a&0x100)a^=0x11b;return a&0xff;}
+function aesExpandKey(key){var rk=new Array(176),i;for(i=0;i<16;i++)rk[i]=key[i];
+ var g=16,r=0,t=new Array(4),k;
+ while(g<176){for(i=0;i<4;i++)t[i]=rk[g-4+i];
+  if(g%16===0){k=t[0];t[0]=t[1];t[1]=t[2];t[2]=t[3];t[3]=k;for(i=0;i<4;i++)t[i]=AES_SBOX[t[i]];t[0]^=AES_RCON[r++];}
+  for(i=0;i<4;i++){rk[g]=rk[g-16]^t[i];g++;}}
+ return rk;}
+function aesEncryptBlock(key16,block16){var rk=aesExpandKey(key16),s=block16.slice(0,16),i,round;
+ for(i=0;i<16;i++)s[i]^=rk[i];
+ for(round=1;round<=10;round++){for(i=0;i<16;i++)s[i]=AES_SBOX[s[i]];
+  var t=s.slice();
+  s[1]=t[5];s[5]=t[9];s[9]=t[13];s[13]=t[1];
+  s[2]=t[10];s[6]=t[14];s[10]=t[2];s[14]=t[6];
+  s[3]=t[15];s[7]=t[3];s[11]=t[7];s[15]=t[11];
+  if(round<10){for(i=0;i<16;i+=4){var a0=s[i],a1=s[i+1],a2=s[i+2],a3=s[i+3];
+   s[i]=xtime(a0)^(xtime(a1)^a1)^a2^a3;s[i+1]=a0^xtime(a1)^(xtime(a2)^a2)^a3;
+   s[i+2]=a0^a1^xtime(a2)^(xtime(a3)^a3);s[i+3]=(xtime(a0)^a0)^a1^a2^xtime(a3);}}
+  for(i=0;i<16;i++)s[i]^=rk[round*16+i];}
+ return s;}
+/* SHA-1 — validé contre SHA1("abc") */
+function sha1(bytes){var ml=bytes.length*8,w=bytes.slice(),i;w.push(0x80);
+ while(w.length%64!==56)w.push(0);
+ for(i=7;i>=0;i--)w.push((Math.floor(ml/Math.pow(2,i*8)))&0xff);
+ var h0=0x67452301,h1=0xEFCDAB89,h2=0x98BADCFE,h3=0x10325476,h4=0xC3D2E1F0;
+ function rol(n,c){return((n<<c)|(n>>>(32-c)))>>>0;}
+ for(var off=0;off<w.length;off+=64){var a2=new Array(80);
+  for(i=0;i<16;i++)a2[i]=((w[off+i*4]<<24)|(w[off+i*4+1]<<16)|(w[off+i*4+2]<<8)|w[off+i*4+3])>>>0;
+  for(i=16;i<80;i++)a2[i]=rol((a2[i-3]^a2[i-8]^a2[i-14]^a2[i-16])>>>0,1);
+  var a=h0,b=h1,c=h2,d=h3,e=h4,f,k,tp;
+  for(i=0;i<80;i++){if(i<20){f=(b&c)|((~b)&d);k=0x5A827999;}else if(i<40){f=b^c^d;k=0x6ED9EBA1;}
+   else if(i<60){f=(b&c)|(b&d)|(c&d);k=0x8F1BBCDC;}else{f=b^c^d;k=0xCA62C1D6;}
+   tp=(rol(a,5)+f+e+k+a2[i])>>>0;e=d;d=c;c=rol(b,30);b=a;a=tp;}
+  h0=(h0+a)>>>0;h1=(h1+b)>>>0;h2=(h2+c)>>>0;h3=(h3+d)>>>0;h4=(h4+e)>>>0;}
+ var out=[];[h0,h1,h2,h3,h4].forEach(function(h){out.push((h>>>24)&0xff,(h>>>16)&0xff,(h>>>8)&0xff,h&0xff);});
+ return out;}
+/* NinebotCrypto — port de scooterhacking/NinebotCrypto (roundtrip validé) */
+var FW=[0x97,0xCF,0xB8,0x02,0x84,0x41,0x43,0xDE,0x56,0x00,0x2B,0x3B,0x34,0x78,0x0A,0x5D];
+function sb(s){var a=[];for(var i=0;i<s.length;i++)a.push(s.charCodeAt(i)&0xff);return a;}
+function NB(name){this.name=name;this.rB=new Array(16).fill(0);this.rA=new Array(16).fill(0);this.k=new Array(16).fill(0);this.it=0;this._sha(sb(name),FW);}
+NB.prototype._sha=function(d1,d2){var s=new Array(32).fill(0),i;for(i=0;i<d1.length&&i<32;i++)s[i]=d1[i];for(i=0;i<16;i++)s[16+i]=d2[i];this.k=sha1(s).slice(0,16);};
+NB.prototype._first=function(d){var r=new Array(d.length),p=d.length,x=0;while(p>0){var t=p<=16?p:16,x1=new Array(16).fill(0),i;for(i=0;i<t;i++)x1[i]=d[x+i];var x2=aesEncryptBlock(this.k,FW);for(i=0;i<t;i++)r[x+i]=x1[i]^x2[i];p-=t;x+=t;}return r;};
+NB.prototype._next=function(d,it){var e=new Array(16).fill(0);e[0]=1;e[1]=(it>>>24)&0xff;e[2]=(it>>>16)&0xff;e[3]=(it>>>8)&0xff;e[4]=it&0xff;for(var j=0;j<8;j++)e[5+j]=this.rB[j];e[15]=0;
+ var r=new Array(d.length),p=d.length,x=0;while(p>0){e[15]=(e[15]+1)&0xff;var t=p<=16?p:16,x1=new Array(16).fill(0),i;for(i=0;i<t;i++)x1[i]=d[x+i];var x2=aesEncryptBlock(this.k,e);for(i=0;i<t;i++)r[x+i]=x1[i]^x2[i];p-=t;x+=t;}return r;};
+NB.prototype._crcF=function(d){var c=0;for(var i=0;i<d.length;i++)c=(c+d[i])&0xffff;c=(~c)&0xffff;return[c&0xff,(c>>8)&0xff];};
+NB.prototype._crcN=function(d,it){var e=new Array(16).fill(0),p=d.length-3,x=3,i,x2,x1,xd;e[0]=89;e[1]=(it>>>24)&0xff;e[2]=(it>>>16)&0xff;e[3]=(it>>>8)&0xff;e[4]=it&0xff;for(var j=0;j<8;j++)e[5+j]=this.rB[j];e[15]=p&0xff;
+ x2=aesEncryptBlock(this.k,e);x1=new Array(16).fill(0);for(i=0;i<3;i++)x1[i]=d[i];xd=new Array(16);for(i=0;i<16;i++)xd[i]=x1[i]^x2[i];x2=aesEncryptBlock(this.k,xd);
+ while(p>0){var t=p<=16?p:16;x1=new Array(16).fill(0);for(i=0;i<t;i++)x1[i]=d[x+i];xd=new Array(16);for(i=0;i<16;i++)xd[i]=x1[i]^x2[i];x2=aesEncryptBlock(this.k,xd);p-=t;x+=t;}
+ e[0]=1;e[15]=0;var L=aesEncryptBlock(this.k,e);return[L[0]^x2[0],L[1]^x2[1],L[2]^x2[2],L[3]^x2[3]];};
+NB.prototype.encrypt=function(D){var en=new Array(152).fill(0),i;for(i=0;i<3;i++)en[i]=D[i];var pl=D.length-3,pay=D.slice(3),crc;
+ if(this.it===0){crc=this._crcF(pay);pay=this._first(pay);for(i=0;i<pay.length;i++)en[3+i]=pay[i];en[pl+3]=0;en[pl+4]=0;en[pl+5]=crc[0];en[pl+6]=crc[1];en[pl+7]=0;en[pl+8]=0;en=en.slice(0,pl+9);this.it++;}
+ else{this.it++;crc=this._crcN(D,this.it);pay=this._next(pay,this.it);for(i=0;i<pay.length;i++)en[3+i]=pay[i];en[pl+3]=crc[0];en[pl+4]=crc[1];en[pl+5]=crc[2];en[pl+6]=crc[3];en[pl+7]=(this.it>>8)&0xff;en[pl+8]=this.it&0xff;en=en.slice(0,pl+9);
+  if(D[0]===0x5A&&D[1]===0xA5&&D[2]===0x10&&D[3]===0x3E&&D[4]===0x21&&D[5]===0x5C&&D[6]===0x00){for(i=0;i<16;i++)this.rA[i]=D[7+i];}}
+ return en;};
+NB.prototype.decrypt=function(D){var de=new Array(D.length-6).fill(0),i;for(i=0;i<3;i++)de[i]=D[i];
+ var nit=this.it;if((nit&0x8000)>0&&(D[D.length-2]>>7)===0)nit+=0x10000;nit=(nit&0xFFFF0000)+((D[D.length-2]<<8)>>>0)+D[D.length-1];
+ var pl=D.length-9,pay=D.slice(3,3+pl);
+ if(nit===0){pay=this._first(pay);for(i=0;i<pay.length;i++)de[3+i]=pay[i];
+  if(de[0]===0x5A&&de[1]===0xA5&&de[2]===0x1E&&de[3]===0x21&&de[4]===0x3E&&de[5]===0x5B){for(i=0;i<16;i++)this.rB[i]=de[7+i];this._sha(sb(this.name),this.rB);}}
+ else if(nit>0&&nit>this.it){pay=this._next(pay,nit);for(i=0;i<pay.length;i++)de[3+i]=pay[i];
+  if(de[0]===0x5A&&de[1]===0xA5&&de[2]===0x00&&de[3]===0x21&&de[4]===0x3E&&de[5]===0x5C&&de[6]===0x01){this._sha(this.rA,this.rB);}this.it=nit;}
+ return de;};
+
+/* =========================================================================
+   Transport BLE + protocole
+   ========================================================================= */
+var UART="6e400001-b5a3-f393-e0a9-e50e24dcca9e",RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e",TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+var APP=0x3d,ESC=0x20;
+var REG={serial:0x10,fw:0x1a,battery:0x32,voltage:0x34,speed:0xb5,total:0x29,temp:0x3e,region:0x72,limit:0x74,cruise:0x7c,tail:0x7d};
 var REGIONS=[
- {value:0x00,name:"Global / Déverrouillé",flag:"🌍",note:"Vitesse max selon le matériel."},
- {value:0x01,name:"États-Unis",flag:"🇺🇸",note:"Plafond typique 32 km/h."},
- {value:0x02,name:"Europe (25 km/h)",flag:"🇪🇺",note:"Plafond légal 25 km/h."},
- {value:0x03,name:"Chine (25 km/h)",flag:"🇨🇳",note:"Plafond légal 25 km/h."}
+ {v:0x00,tag:"GLOBAL",name:"Déverrouillé",note:"Vitesse maxi matériel"},
+ {v:0x02,tag:"EU",name:"Europe",note:"Plafond 25 km/h"},
+ {v:0x01,tag:"US",name:"États-Unis",note:"~32 km/h"},
+ {v:0x03,tag:"CN",name:"Chine",note:"25 km/h"}
 ];
-function checksum16(bytes){var s=0;for(var i=0;i<bytes.length;i++)s=(s+bytes[i])>>>0;return (~s)&0xffff;}
-function buildFrame(dst,src,cmd,payload){var body=[dst,src,cmd].concat(payload);var len=body.length&0xff;var c=[len].concat(body);var ck=checksum16(c);return Uint8Array.from([0x5a,0xa5].concat(c).concat([ck&0xff,(ck>>8)&0xff]));}
-function readReq(reg,len){return buildFrame(ADDR.esc,ADDR.app,CMD.read,[reg,len]);}
-function writeReq(reg,bytes){return buildFrame(ADDR.esc,ADDR.app,CMD.write,[reg].concat(bytes));}
-function parse(buf){if(buf.length<8)return null;if(buf[0]!==0x5a||buf[1]!==0xa5)return null;var len=buf[2];var total=2+1+len+2;if(buf.length<total)return null;var c=buf.slice(2,3+len);var exp=checksum16(c);var act=buf[3+len]|(buf[3+len+1]<<8);if(exp!==act)return null;return{frame:{register:buf[6],payload:buf.slice(7,3+len)},consumed:total};}
+var MAXKMH=35;
+var st={},dev=null,rx=null,tx=null,buf=[],poll=null,mode=null,crypto=null,handshake=null,probeTimer=null,gotReply=false;
+
+function $(id){return document.getElementById(id);}
+function now(){return new Date().toLocaleTimeString();}
+function log(m){var el=$("log");el.textContent="["+now()+"] "+m+"\n"+el.textContent;}
+function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+
+/* ---- plaintext frame (M365) ---- */
+function ck16(a){var s=0;for(var i=0;i<a.length;i++)s=(s+a[i])>>>0;return(~s)&0xffff;}
+function plainFrame(dst,cmd,pay){var body=[dst,APP,cmd].concat(pay),len=body.length&0xff,c=[len].concat(body),k=ck16(c);return[0x5a,0xa5].concat(c).concat([k&0xff,(k>>8)&0xff]);}
+function plainRead(reg,n){return plainFrame(ESC,0x01,[reg,n]);}
+function plainWrite(reg,bytes){return plainFrame(ESC,0x03,[reg].concat(bytes));}
+function parsePlain(b){if(b.length<8)return null;if(b[0]!==0x5a||b[1]!==0xa5)return null;var len=b[2],tot=2+1+len+2;if(b.length<tot)return null;
+ var cs=b.slice(2,3+len),exp=ck16(cs),act=b[3+len]|(b[3+len+1]<<8);if(exp!==act)return null;return{reg:b[6],pay:b.slice(7,3+len),consumed:tot};}
+
+/* ---- encrypted frame (E-series / Ninebot) : LEN + 13 sur le fil ----
+   Trame en clair AVANT chiffrement : 5A A5 LEN <dst> <src=app 0x3E> <cmd> <data...>
+   Handshake calqué exactement sur la lib de référence (3E 21 5B/5C/5D 00 ...). */
+function encReadFrame(reg,n){return[0x5a,0xa5,0x02,ESC,0x3E,0x01,reg,n];}
+function encWriteFrame(reg,bytes){return[0x5a,0xa5,(1+bytes.length)&0xff,ESC,0x3E,0x03,reg].concat(bytes);}
+function encHandshake(len,cmd,pay){return[0x5a,0xa5,len,0x3E,0x21,cmd,0x00].concat(pay||[]);}
+
 function le16(p){return p.length>=2?(p[0]|(p[1]<<8)):null;}
 function le16s(p){var v=le16(p);return v==null?null:(v>0x7fff?v-0x10000:v);}
 function le32(p){return p.length>=4?((p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24))>>>0):null;}
 
-// ---- App ----
-var state={},device=null,rxChar=null,txChar=null,rxBuffer=[],pollTimer=null;
-function $(id){return document.getElementById(id);}
-function log(m){var el=$("log");el.textContent="["+new Date().toLocaleTimeString()+"] "+m+"\n"+el.textContent;}
-function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+function send(bytes){if(!rx)return;var out;
+ if(mode==="enc"&&crypto)out=crypto.encrypt(bytes);else out=bytes;
+ var u=Uint8Array.from(out);
+ rx.writeValueWithoutResponse(u).catch(function(){return rx.writeValue(u).catch(function(e){log("écriture: "+e.message);});});}
 
-var SCOOTER_FILTERS=[
- {namePrefix:"MIScooter"},{namePrefix:"Ninebot"},{namePrefix:"NB"},
- {namePrefix:"M365"},{namePrefix:"MI"},{namePrefix:"Mi "},
- {namePrefix:"Segway"},{namePrefix:"Xiaomi"},{namePrefix:"ES"}
-];
-function connect(){ doRequest({filters:SCOOTER_FILTERS,optionalServices:[UART_SERVICE]}); }
-function connectAll(){ doRequest({acceptAllDevices:true,optionalServices:[UART_SERVICE]}); }
-function doRequest(opts){
- if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;$("connect-all-btn").hidden=true;return;}
- log("Sélection de l'appareil…");
- navigator.bluetooth.requestDevice(opts)
- .then(function(d){device=d;d.addEventListener("gattserverdisconnected",onDisc);log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();})
- .then(function(s){return s.getPrimaryService(UART_SERVICE);})
- .then(function(svc){return Promise.all([svc.getCharacteristic(UART_RX),svc.getCharacteristic(UART_TX)]);})
- .then(function(chs){rxChar=chs[0];txChar=chs[1];return txChar.startNotifications();})
- .then(function(){txChar.addEventListener("characteristicvaluechanged",onNotify);log("Connecté. Lecture des infos…");show(true);initialReads();pollTimer=setInterval(refreshTelemetry,1000);})
- .catch(function(e){log("Erreur : "+e.message);});
+function readReg(reg,n){if(mode==="enc")send(encReadFrame(reg,n));else send(plainRead(reg,n));}
+function writeReg(reg,bytes){if(mode==="enc")send(encWriteFrame(reg,bytes));else send(plainWrite(reg,bytes));}
+
+/* =========================== CONNEXION =========================== */
+var FILTERS=[{namePrefix:"MIScooter"},{namePrefix:"Ninebot"},{namePrefix:"NB"},{namePrefix:"M365"},{namePrefix:"MI"},{namePrefix:"Mi "},{namePrefix:"Segway"},{namePrefix:"Xiaomi"},{namePrefix:"ES"},{namePrefix:"KickScooter"}];
+function connect(){go({filters:FILTERS,optionalServices:[UART]});}
+function connectAll(){go({acceptAllDevices:true,optionalServices:[UART]});}
+function go(opts){
+ if(!hasBT()){$("nobt").classList.remove("hidden");$("btn-connect").disabled=true;$("btn-connect-all").disabled=true;return;}
+ navigator.bluetooth.requestDevice(opts).then(function(d){
+  dev=d;d.addEventListener("gattserverdisconnected",onDisc);
+  showOverlay("Connexion…","Établissement du lien Bluetooth.",0);
+  log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();
+ }).then(function(s){return s.getPrimaryService(UART);})
+ .then(function(svc){return Promise.all([svc.getCharacteristic(RX),svc.getCharacteristic(TX)]);})
+ .then(function(cs){rx=cs[0];tx=cs[1];return tx.startNotifications();})
+ .then(function(){tx.addEventListener("characteristicvaluechanged",onData);log("Lien établi. Détection du protocole…");startProbe();})
+ .catch(function(e){hideOverlay();log("Erreur : "+e.message);});
 }
-function onDisc(){clearInterval(pollTimer);rxChar=txChar=null;log("Déconnecté.");show(false);}
-function disconnect(){clearInterval(pollTimer);if(device&&device.gatt.connected)device.gatt.disconnect();}
-function send(frame){if(!rxChar)return;rxChar.writeValueWithoutResponse(frame).catch(function(){return rxChar.writeValue(frame).catch(function(e){log("Écriture échouée: "+e.message);});});}
-function read(reg,len){send(readReq(reg,len));}
-function write(reg,bytes){send(writeReq(reg,bytes));}
-function initialReads(){read(REG.serial,14);read(REG.firmware,2);read(REG.region,1);read(REG.speedLimit,2);refreshTelemetry();}
-function refreshTelemetry(){read(REG.battery,2);read(REG.voltage,2);read(REG.speed,2);read(REG.total,4);read(REG.temp,2);}
-function onNotify(e){var v=e.target.value;for(var i=0;i<v.byteLength;i++)rxBuffer.push(v.getUint8(i));var r;while((r=parse(rxBuffer))){apply(r.frame);rxBuffer=rxBuffer.slice(r.consumed);}if(rxBuffer.length>512)rxBuffer=[];}
-function apply(f){var p=f.payload,v;state.responded=true;switch(f.register){
- case REG.serial:state.serial=String.fromCharCode.apply(null,p).replace(/[^\x20-\x7e]/g,"").trim();break;
- case REG.firmware:v=le16(p);if(v!=null)state.firmware=((v>>8)&0xf)+"."+((v>>4)&0xf)+"."+(v&0xf);break;
- case REG.battery:v=le16(p);if(v!=null)state.battery=v;break;
- case REG.voltage:v=le16(p);if(v!=null)state.voltage=v/100;break;
- case REG.speed:v=le16s(p);if(v!=null)state.speed=Math.abs(v/1000);break;
- case REG.total:v=le32(p);if(v!=null)state.total=v/1000;break;
- case REG.temp:v=le16s(p);if(v!=null)state.temp=Math.round(v/10);break;
- case REG.region:if(p.length)state.region=p[0];break;
- case REG.speedLimit:v=le16(p);if(v!=null)state.speedLimit=v;break;
+function onDisc(){clearInterval(poll);clearTimeout(probeTimer);if(handshake)clearInterval(handshake);rx=tx=null;mode=null;crypto=null;buf=[];log("Déconnecté.");$("screen-app").classList.add("hidden");$("screen-connect").classList.remove("hidden");hideOverlay();}
+function disconnect(){clearInterval(poll);if(dev&&dev.gatt.connected)dev.gatt.disconnect();}
+
+/* Détection : on tente le clair; sans réponse en 2.5 s → chiffré (E-series) */
+function startProbe(){
+ mode="plain";gotReply=false;buf=[];
+ showOverlay("Détection…","Test du protocole ouvert (M365 / ES).",0);
+ readReg(REG.serial,14);readReg(REG.fw,2);readReg(REG.battery,2);
+ probeTimer=setTimeout(function(){
+  if(gotReply){enterComm("Protocole ouvert");}
+  else{startEncrypted();}
+ },2500);
+}
+
+/* ---- appairage chiffré E-series ---- */
+function startEncrypted(){
+ if(!dev.name){showOverlay("Nom Bluetooth manquant","Impossible d'initialiser le chiffrement sans le nom de l'appareil. Réessaie via « tous les appareils ».",0);setPower(false);return;}
+ mode="enc";crypto=new NB(dev.name);buf=[];st.enc=true;
+ setStep(0);showOverlay("Appairage chiffré…","Ta trottinette utilise le protocole chiffré Ninebot (E-series). Tentative de session sécurisée.",1);
+ log("Handshake chiffré (nom="+dev.name+")");
+ hs_state="precomm";hs_send();
+}
+var hs_state=null,hs_sn=null,hs_key=null;
+function randKey(){var s="abcdefghijklmnopqrstuvwxyz0123456789",a=[];for(var i=0;i<16;i++)a.push(s.charCodeAt(Math.floor(Math.random()*s.length)));return a;}
+function hs_send(){
+ clearInterval(handshake);
+ if(hs_state==="precomm"){send(encHandshake(0x00,0x5B,[]));handshake=setInterval(function(){if(hs_state==="precomm")send(encHandshake(0x00,0x5B,[]));},1000);}
+ else if(hs_state==="setpwd"){if(!hs_key)hs_key=randKey();setStep(1);setPower(true);
+  send(encHandshake(0x10,0x5C,hs_key));handshake=setInterval(function(){if(hs_state==="setpwd")send(encHandshake(0x10,0x5C,hs_key));},1000);}
+ else if(hs_state==="auth"){setStep(2);setPower(false);
+  send(encHandshake(0x0E,0x5D,hs_sn));handshake=setInterval(function(){if(hs_state==="auth")send(encHandshake(0x0E,0x5D,hs_sn));},1200);}
+}
+
+/* =========================== RÉCEPTION =========================== */
+function onData(ev){var v=ev.target.value,i;for(i=0;i<v.byteLength;i++)buf.push(v.getUint8(i));
+ if(mode==="enc")pumpEnc();else pumpPlain();
+ if(buf.length>1024)buf=[];}
+
+function pumpPlain(){var r;while((r=parsePlain(buf))){gotReply=true;applyReg(r.reg,r.pay);buf=buf.slice(r.consumed);}}
+
+function pumpEnc(){
+ while(buf.length>=8&&buf[0]===0x5a&&buf[1]===0xa5){
+  var tot=buf[2]+13;if(buf.length<tot)break;
+  var wire=buf.slice(0,tot);buf=buf.slice(tot);
+  var dec;try{dec=crypto.decrypt(wire);}catch(e){continue;}
+  handleEnc(dec);
+ }
+ // resync si octets parasites
+ if(buf.length>2&&!(buf[0]===0x5a&&buf[1]===0xa5)){var idx=-1;for(var i=1;i<buf.length-1;i++){if(buf[i]===0x5a&&buf[i+1]===0xa5){idx=i;break;}}buf=idx<0?[]:buf.slice(idx);}
+}
+function handleEnc(dec){
+ gotReply=true;
+ var cmd=dec[5],arg=dec[6];
+ if(cmd===0x5B){ // PRE_COMM reply : contient S/N
+  var pay=dec.slice(6);var sn=pay.slice(16,30);hs_sn=sn;
+  st.serial=String.fromCharCode.apply(null,sn).replace(/[^\x20-\x7e]/g,"").trim();
+  log("Appairage : réponse reçue, S/N "+st.serial);
+  hs_state="setpwd";hs_send();render();return;
+ }
+ if(cmd===0x5C){ // SET_PWD reply (arg 01 = bouton pressé / clé acceptée)
+  log("Clé "+(arg===1?"acceptée (bouton pressé)":"reçue"));
+  hs_state="auth";hs_send();return;
+ }
+ if(cmd===0x5D){ // AUTH reply → appairé
+  log("✅ Appairé.");clearInterval(handshake);enterComm("Chiffré Ninebot (E-series)");return;
+ }
+ // réponse de lecture : [5A A5 len src dst cmd reg data...] ; le tableau déchiffré
+ // est déjà borné à la bonne taille, donc on prend tout après le registre.
+ if(dec.length>7)applyReg(dec[6],dec.slice(7));
+}
+
+function enterComm(protoName){
+ clearInterval(handshake);clearTimeout(probeTimer);
+ st.proto=protoName;
+ $("screen-connect").classList.add("hidden");$("screen-app").classList.remove("hidden");$("screen-app").classList.add("fade");
+ $("devname").textContent=dev&&dev.name?dev.name:"Connecté";
+ hideOverlay();log("Session prête ("+protoName+").");
+ initialReads();poll=setInterval(refresh,1000);render();
+}
+function initialReads(){readReg(REG.serial,14);readReg(REG.fw,2);readReg(REG.region,1);readReg(REG.limit,2);refresh();}
+function refresh(){readReg(REG.battery,2);readReg(REG.voltage,2);readReg(REG.speed,2);readReg(REG.total,4);readReg(REG.temp,2);}
+
+function applyReg(reg,p){var v;switch(reg){
+ case REG.serial:var s=String.fromCharCode.apply(null,p).replace(/[^\x20-\x7e]/g,"").trim();if(s)st.serial=s;break;
+ case REG.fw:v=le16(p);if(v!=null)st.fw=((v>>8)&0xf)+"."+((v>>4)&0xf)+"."+(v&0xf);break;
+ case REG.battery:v=le16(p);if(v!=null)st.battery=v;break;
+ case REG.voltage:v=le16(p);if(v!=null)st.voltage=v/100;break;
+ case REG.speed:v=le16s(p);if(v!=null)st.speed=Math.abs(v/1000);break;
+ case REG.total:v=le32(p);if(v!=null)st.total=v/1000;break;
+ case REG.temp:v=le16s(p);if(v!=null)st.temp=Math.round(v/10);break;
+ case REG.region:if(p.length)st.region=p[0];break;
+ case REG.limit:v=le16(p);if(v!=null)st.limit=v;break;
 }render();}
-function setRegion(val){var r=REGIONS.filter(function(x){return x.value===val;})[0];log("Écriture région → "+(r?r.name:val));write(REG.region,[val]);read(REG.region,1);}
-function setSpeed(k){var v=Math.max(1,Math.min(k,100));log("Écriture vitesse max → "+v+" km/h");write(REG.speedLimit,[v&0xff,(v>>8)&0xff]);read(REG.speedLimit,2);}
 
-// Débridage + vérification : lit l'état avant, applique, relit après, et
-// annonce clairement si la trottinette a accepté la commande.
-function runDiag(){
- if(!$("ack").checked){alert("Coche d'abord la case de responsabilité (section Réglages).");return;}
- var target=Number($("limit-slider").value);
- var box=$("diag");box.hidden=false;
- box.innerHTML="⏳ Diagnostic en cours… garde la trottinette allumée et à l'arrêt (~6 s).";
- state.responded=false;
- read(REG.region,1);read(REG.speedLimit,2);read(REG.firmware,2);
- setTimeout(function(){
-  var before={region:state.region,limit:state.speedLimit,responded:state.responded};
-  write(REG.region,[0x00]);
-  write(REG.speedLimit,[target&0xff,(target>>8)&0xff]);
-  setTimeout(function(){
-   read(REG.region,1);read(REG.speedLimit,2);
-   setTimeout(function(){renderDiag(before,target);},1500);
-  },700);
- },1800);
-}
-function renderDiag(before,target){
- var box=$("diag");
- if(!state.responded){
-  box.innerHTML="<b>❌ Ta trottinette ne répond pas aux commandes.</b><br><br>"+
-   "C'est un modèle <b>chiffré</b> (Ninebot <b>E22/E25/E45/E45E</b>, Max G30, F, G2/GT…). "+
-   "Aucune app iPhone ne peut les débrider.<br><br>"+
-   "👉 Pour une <b>E-series (E45E)</b> : ouvre le bloc « 🛴 Ma trottinette est une Ninebot E-series » ci-dessous — la solution passe par l'app Android gratuite <b>ScooterHacking Utility</b> (~30 km/h max sur E45).";
-  return;
- }
- var regionNow=state.region,limitNow=state.speedLimit;
- var regionChanged=(before.region!==regionNow&&regionNow===0x00);
- var limitAccepted=(limitNow===target)||(before.limit!==limitNow&&limitNow!=null);
- var html="<b>Résultat du diagnostic</b><br><br>";
- html+="🛰️ Modèle : "+(state.firmware?("firmware "+state.firmware):"protocole ouvert (M365/ES)")+"<br>";
- html+=(regionChanged?"✅":"▫️")+" Région → "+(regionNow===0x00?"Global (déverrouillée)":("code "+regionNow))+"<br>";
- html+=(limitAccepted?"✅":"❌")+" Vitesse max enregistrée : "+(limitNow!=null?limitNow+" km/h":"—")+" (demandé "+target+")<br><br>";
- if(limitAccepted||regionChanged){
-  html+="<b>✅ Ta trottinette ACCEPTE le débridage&nbsp;!</b><br>"+
-   "La commande a bien été prise en compte.<br><br>"+
-   "⚠️ Si l'écran affiche encore <b>25</b>, c'est que ton firmware impose une <b>limite légale fixe</b> par-dessus. "+
-   "Pour dépasser cette limite matérielle il faut un <b>firmware custom</b> (outil sur ordinateur), non proposé ici pour ne pas risquer d'abîmer ta trottinette. "+
-   "Le passage en région <b>Global</b> reste le levier le plus efficace et le plus sûr — refais un tour pour vérifier la vitesse réelle.";
- } else {
-  html+="<b>⚠️ Ta trottinette répond, mais n'a pas pris en compte l'écriture.</b><br>"+
-   "Ce registre n'est peut-être pas celui utilisé par ton firmware.<br><br>"+
-   "👉 Essaie les solutions ci-dessous (arrêt complet, reconnexion, plusieurs tentatives).";
-  $("fixbox").open=true;
- }
- box.innerHTML=html;
-}
+/* =========================== RENDU =========================== */
 function render(){
- $("speed").textContent=state.speed!=null?state.speed.toFixed(1):"--";
- $("battery").textContent=state.battery!=null?state.battery+" %":"--";
- $("voltage").textContent=state.voltage!=null?state.voltage.toFixed(1)+" V":"--";
- $("total").textContent=state.total!=null?state.total.toFixed(1)+" km":"--";
- $("temp").textContent=state.temp!=null?state.temp+" °C":"--";
- $("serial").textContent=state.serial||"—";
- $("firmware").textContent=state.firmware||"—";
- var r=REGIONS.filter(function(x){return x.value===state.region;})[0];
- $("region").textContent=r?(r.flag+" "+r.name):"—";
- if(state.speedLimit!=null)$("limitCurrent").textContent="Actuel : "+state.speedLimit+" km/h";
- var btns=document.querySelectorAll(".region-btn");for(var i=0;i<btns.length;i++){btns[i].classList.toggle("active",Number(btns[i].getAttribute("data-value"))===state.region);}
+ var sp=st.speed!=null?st.speed:0;
+ $("speed").textContent=st.speed!=null?st.speed.toFixed(1):"0.0";
+ var frac=Math.max(0,Math.min(1,sp/MAXKMH));
+ $("gauge-fill").setAttribute("stroke-dashoffset",(405*(1-frac)).toFixed(1));
+ $("battery").innerHTML=st.battery!=null?st.battery+'<small>%</small>':"—";
+ $("voltage").innerHTML=st.voltage!=null?st.voltage.toFixed(1)+'<small>V</small>':"—";
+ $("distance").innerHTML=st.total!=null?st.total.toFixed(1)+'<small>km</small>':"—";
+ $("temp").innerHTML=st.temp!=null?st.temp+'<small>°C</small>':"—";
+ $("serial").textContent=st.serial||"—";
+ $("fw").textContent=st.fw||"—";
+ $("proto").textContent=st.proto||"—";
+ $("model").textContent=st.enc?(st.serial&&/^N/.test(st.serial)?"Ninebot E-series":"Ninebot (chiffré)"):"Xiaomi/Ninebot (ouvert)";
+ var r=null;for(var i=0;i<REGIONS.length;i++)if(REGIONS[i].v===st.region)r=REGIONS[i];
+ document.querySelectorAll(".reg").forEach(function(b){b.classList.toggle("on",Number(b.dataset.v)===st.region);});
+ if(st.limit!=null)$("limit-cur").textContent="Actuel : "+st.limit+" km/h";
 }
-function show(connected){$("scan-screen").hidden=connected;$("app-screen").hidden=!connected;}
-function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=document.createElement("button");b.className="region-btn";b.setAttribute("data-value",r.value);b.innerHTML='<span class="flag">'+r.flag+'</span><span><strong>'+r.name+'</strong><br><small>'+r.note+'</small></span>';b.onclick=function(){if(confirm("Changer la région vers « "+r.name+" » ?\n"+r.note))setRegion(r.value);};w.appendChild(b);});}
+
+/* =========================== OVERLAY =========================== */
+function showOverlay(t,m,spin){$("overlay").classList.add("show");$("pair-title").textContent=t;$("pair-msg").textContent=m;$("pair-spin").style.display=spin===0?"none":"block";}
+function hideOverlay(){$("overlay").classList.remove("show");}
+function setStep(n){["ps0","ps1","ps2"].forEach(function(id,i){$(id).classList.toggle("on",i<=n);});}
+function setPower(on){$("pair-power").classList.toggle("hidden",!on);if(on){$("pair-title").textContent="Appuie sur le bouton";$("pair-msg").textContent="Pour autoriser l'appairage, appuie une fois sur le bouton d'alimentation de la trottinette.";}}
+
+/* =========================== ACTIONS =========================== */
+function setRegion(v){var r=null;for(var i=0;i<REGIONS.length;i++)if(REGIONS[i].v===v)r=REGIONS[i];log("Région → "+(r?r.name:v));writeReg(REG.region,[v]);setTimeout(function(){readReg(REG.region,1);},400);}
+function setSpeed(k){var v=Math.max(1,Math.min(k,100));log("Vitesse max → "+v+" km/h");writeReg(REG.limit,[v&0xff,(v>>8)&0xff]);setTimeout(function(){readReg(REG.limit,2);},400);}
+
+function runDiag(){
+ if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}
+ var target=Number($("limit").value);
+ $("diag").classList.remove("hidden");$("diag-body").innerHTML="Diagnostic en cours… garde la trottinette allumée et à l'arrêt (~6 s).";
+ gotReply=false;readReg(REG.region,1);readReg(REG.limit,2);
+ var before={region:st.region,limit:st.limit};
+ setTimeout(function(){writeReg(REG.region,[0x00]);writeReg(REG.limit,[target&0xff,(target>>8)&0xff]);
+  setTimeout(function(){readReg(REG.region,1);readReg(REG.limit,2);setTimeout(function(){diagResult(before,target);},1500);},700);},1600);
+}
+function diagResult(before,target){
+ var b=$("diag-body");
+ if(st.enc){
+  b.innerHTML="<b>Modèle chiffré détecté"+(st.serial?(" — "+st.serial):"")+".</b><br><br>"+
+   "La console a établi une session chiffrée et lit les données, mais l'<b>écriture de la vitesse est bloquée par le firmware</b> ("+(st.fw?("DRV "+st.fw):"DRV 2.7.x")+"). "+
+   "Sur E-series, il faut <b>rétrograder le firmware</b> — impossible et risqué depuis une app web.<br><br>"+
+   "👉 Déplie « Ma trottinette est une Ninebot E-series » ci-dessus : la méthode sûre passe par <b>ScooterHacking Utility</b> (Android), vitesse réelle ~30 km/h.";
+  $("eblock").open=true;return;
+ }
+ var okLimit=(st.limit===target)||(before.limit!==st.limit&&st.limit!=null);
+ var okRegion=(st.region===0x00);
+ if(okLimit||okRegion){
+  b.innerHTML="<b>✅ Ta trottinette accepte le déverrouillage.</b><br>Région : "+(okRegion?"Global":("code "+st.region))+" · Vitesse enregistrée : "+(st.limit!=null?st.limit+" km/h":"—")+".<br><br>Si l'écran reste à 25, ton firmware impose une limite légale fixe : le passage en <b>Global</b> reste le levier le plus sûr. Refais un tour pour vérifier.";
+ }else{
+  b.innerHTML="<b>⚠️ La trottinette répond mais n'a pas enregistré l'écriture.</b><br>Le registre ne correspond peut-être pas à ton firmware.<br><br>👉 Essaie les solutions ci-dessous.";
+  $("fixblock").open=true;
+ }
+}
+
+/* =========================== UI INIT =========================== */
+var consentOn=false;
+function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=document.createElement("button");b.className="reg";b.dataset.v=r.v;
+ b.innerHTML='<span class="pill">'+r.tag+'</span><span><span class="rt">'+r.name+'</span><span class="rn">'+r.note+'</span></span>';
+ b.onclick=function(){if(confirm("Passer la région sur « "+r.name+" » ?\n"+r.note))setRegion(r.v);};w.appendChild(b);});}
+
 function init(){
  buildRegions();
- $("connect-btn").onclick=connect;
- $("connect-all-btn").onclick=connectAll;
- $("disconnect-btn").onclick=disconnect;
- var sl=$("limit-slider");sl.oninput=function(){$("limit-label").textContent=sl.value+" km/h";};
- $("apply-limit").onclick=function(){if(!$("ack").checked){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
- $("diag-btn").onclick=runDiag;
- $("cruise").onchange=function(e){if($("ack").checked)write(REG.cruise,[e.target.checked?1:0]);};
- $("tail").onchange=function(e){if($("ack").checked)write(REG.tail,[e.target.checked?1:0]);};
- if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;$("connect-all-btn").hidden=true;}
+ $("btn-connect").onclick=connect;
+ $("btn-connect-all").onclick=connectAll;
+ $("btn-disconnect").onclick=disconnect;
+ var sl=$("limit");sl.oninput=function(){$("limit-val").textContent=sl.value;};
+ $("btn-apply").onclick=function(){if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
+ $("consent").onclick=function(){consentOn=!consentOn;$("consent").classList.toggle("on",consentOn);};
+ $("sw-cruise").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-cruise").classList.contains("on");$("sw-cruise").classList.toggle("on",on);writeReg(REG.cruise,[on?1:0]);};
+ $("sw-tail").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-tail").classList.contains("on");$("sw-tail").classList.toggle("on",on);writeReg(REG.tail,[on?1:0]);};
+ $("btn-unlock").onclick=runDiag;
+ if(!hasBT()){$("nobt").classList.remove("hidden");$("btn-connect").disabled=true;$("btn-connect-all").disabled=true;}
 }
 document.addEventListener("DOMContentLoaded",init);
 </script>
