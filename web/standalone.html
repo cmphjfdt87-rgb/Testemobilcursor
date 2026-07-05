@@ -66,8 +66,9 @@ pre{background:#071322;border:1px solid var(--border);border-radius:12px;padding
     <strong>Bluetooth web non disponible dans ce navigateur.</strong>
     <p>Sur iPhone, ouvre cette page dans <b>Bluefy</b> (navigateur gratuit sur l'App Store) : Safari ne gère pas le Bluetooth.</p>
   </div>
-  <button id="connect-btn" class="primary">🔍 Connecter ma trottinette</button>
-  <div class="tip"><p>Trottinette <b>allumée</b> et proche. Sélectionne-la dans la liste qui apparaît.</p></div>
+  <button id="connect-btn" class="primary">🛴 Chercher ma trottinette</button>
+  <button id="connect-all-btn" class="ghost" style="width:100%;padding:12px">Afficher tous les appareils Bluetooth</button>
+  <div class="tip"><p><b>1.</b> Allume ta trottinette et reste à côté.<br><b>2.</b> Appuie sur « Chercher ma trottinette ».<br><b>3.</b> Elle apparaît sous un nom comme <b>MIScooter…</b>, <b>Ninebot…</b> ou <b>M365…</b>. Sélectionne-la.<br><br>Si rien n'apparaît : réveille la trottinette (appuie sur son bouton) puis réessaie, ou utilise « Afficher tous les appareils ». Les lignes avec un code (ex. 7068F751-…) sont d'autres objets Bluetooth autour de toi, pas ta trottinette.</p></div>
 </section>
 
 <section id="app-screen" class="screen" hidden>
@@ -129,10 +130,17 @@ function $(id){return document.getElementById(id);}
 function log(m){var el=$("log");el.textContent="["+new Date().toLocaleTimeString()+"] "+m+"\n"+el.textContent;}
 function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
 
-function connect(){
- if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;return;}
+var SCOOTER_FILTERS=[
+ {namePrefix:"MIScooter"},{namePrefix:"Ninebot"},{namePrefix:"NB"},
+ {namePrefix:"M365"},{namePrefix:"MI"},{namePrefix:"Mi "},
+ {namePrefix:"Segway"},{namePrefix:"Xiaomi"},{namePrefix:"ES"}
+];
+function connect(){ doRequest({filters:SCOOTER_FILTERS,optionalServices:[UART_SERVICE]}); }
+function connectAll(){ doRequest({acceptAllDevices:true,optionalServices:[UART_SERVICE]}); }
+function doRequest(opts){
+ if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;$("connect-all-btn").hidden=true;return;}
  log("Sélection de l'appareil…");
- navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[UART_SERVICE]})
+ navigator.bluetooth.requestDevice(opts)
  .then(function(d){device=d;d.addEventListener("gattserverdisconnected",onDisc);log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();})
  .then(function(s){return s.getPrimaryService(UART_SERVICE);})
  .then(function(svc){return Promise.all([svc.getCharacteristic(UART_RX),svc.getCharacteristic(UART_TX)]);})
@@ -179,12 +187,13 @@ function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=doc
 function init(){
  buildRegions();
  $("connect-btn").onclick=connect;
+ $("connect-all-btn").onclick=connectAll;
  $("disconnect-btn").onclick=disconnect;
  var sl=$("limit-slider");sl.oninput=function(){$("limit-label").textContent=sl.value+" km/h";};
  $("apply-limit").onclick=function(){if(!$("ack").checked){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
  $("cruise").onchange=function(e){if($("ack").checked)write(REG.cruise,[e.target.checked?1:0]);};
  $("tail").onchange=function(e){if($("ack").checked)write(REG.tail,[e.target.checked?1:0]);};
- if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;}
+ if(!hasBT()){$("nobt").hidden=false;$("connect-btn").hidden=true;$("connect-all-btn").hidden=true;}
 }
 document.addEventListener("DOMContentLoaded",init);
 </script>
