@@ -9,7 +9,7 @@ name: Deploy web app (GitHub Pages)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "cursor/ninebot-ios-app-0594"]
   workflow_dispatch: {}
 
 permissions:
