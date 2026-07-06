@@ -1,8 +1,8 @@
 # Ninebot Companion — application iPhone native
 
 > **Tu veux juste ouvrir l'app sur ton iPhone sans rien configurer ?**
-> Lis **[OUVRE-MOI.md](OUVRE-MOI.md)** — lien permanent, 3 gestes, Bluefy + Bluetooth.
-> URL directe : `https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html`
+> Lis **[OUVRE-MOI.md](OUVRE-MOI.md)** — 3 gestes, Bluefy + Bluetooth.
+> URL directe : `https://hazy-beamlet-o29g2mg.shipstatic.com`
 
 Application iOS **native** (SwiftUI + CoreBluetooth) pour se connecter en Bluetooth
 à une trottinette **Ninebot / Xiaomi** que vous possédez, afficher sa télémétrie

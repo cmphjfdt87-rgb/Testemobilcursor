@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./icon.png" />
 <title>NBX — Ninebot Console</title>
 <script>
-/* Watchdog : vérifie que app.js charge et démarre */
+/* Watchdog : vérifie que le script inline démarre */
 (function(){
  function fail(msg){var s=document.getElementById("boot-status");if(s){s.textContent=msg;s.className="hint warn";}}
  function w(){if(window.__nbxReady)return;fail("Script non chargé. Tire vers le bas pour rafraîchir, ou réouvre le lien dans Bluefy.");}

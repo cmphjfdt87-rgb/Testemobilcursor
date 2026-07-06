@@ -1,11 +1,13 @@
 name: Deploy ShipStatic mirror
 
-# Miroir ShipStatic à chaque push sur main (sans compte, sans secret).
-# Le lien permanent pour l'utilisateur reste jsDelivr + branche gh-pages.
+# Héberge web/ sur ShipStatic (text/html correct pour Bluefy).
+# Redéployé à chaque push main + tous les 2 jours (évite expiration 3 jours).
 
 on:
   push:
     branches: ["main"]
+  schedule:
+    - cron: "0 6 */2 * *"
   workflow_dispatch: {}
 
 permissions:
@@ -33,13 +35,16 @@ jobs:
         env:
           SHIP_URL: ${{ steps.ship.outputs.url }}
         run: |
-          PERM="https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html"
+          BACKUP="https://htmlpreview.github.io/?https://raw.githubusercontent.com/cmphjfdt87-rgb/Testemobilcursor/gh-pages/index.html"
           cat > web/LIEN.txt <<EOF
-          LIEN PERMANENT (ouvre dans Bluefy sur iPhone) :
-          ${PERM}
-
-          MIROIR ShipStatic (expire ~3 jours, redéployé automatiquement) :
+          LIEN PRINCIPAL (ouvre dans Bluefy — affiche l'app, pas le code) :
           ${SHIP_URL}
+
+          LIEN DE SECOURS PERMANENT (ne expire pas) :
+          ${BACKUP}
+
+          NE PAS UTILISER (affiche le code source dans Bluefy) :
+          https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
           EOF
 
       - name: Commit LIEN.txt
@@ -52,7 +57,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "LIEN.txt inchangé"
           else
-            git commit -m "Miroir ShipStatic: ${SHIP_URL} [skip ci]"
+            git commit -m "Lien Bluefy: ${SHIP_URL} [skip ci]"
             git push
           fi
 
@@ -61,12 +66,13 @@ jobs:
           SHIP_URL: ${{ steps.ship.outputs.url }}
           CLAIM_URL: ${{ steps.ship.outputs.claim }}
         run: |
+          BACKUP="https://htmlpreview.github.io/?https://raw.githubusercontent.com/cmphjfdt87-rgb/Testemobilcursor/gh-pages/index.html"
           {
-            echo "## NBX Console — liens"
+            echo "## NBX Console — liens Bluefy"
             echo ""
-            echo "**Permanent (Bluefy)** : https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html"
+            echo "**Principal (ShipStatic)** : ${SHIP_URL}"
             echo ""
-            echo "**Miroir ShipStatic** : ${SHIP_URL}"
+            echo "**Secours permanent** : ${BACKUP}"
             if [ -n "${CLAIM_URL}" ]; then
               echo ""
               echo "Claim (garder le miroir) : ${CLAIM_URL}"
