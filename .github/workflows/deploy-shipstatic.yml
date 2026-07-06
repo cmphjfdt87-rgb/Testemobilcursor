@@ -1,0 +1,74 @@
+name: Deploy ShipStatic mirror
+
+# Miroir ShipStatic à chaque push sur main (sans compte, sans secret).
+# Le lien permanent pour l'utilisateur reste jsDelivr + branche gh-pages.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: shipstatic-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Déployer web/ sur ShipStatic
+        id: ship
+        uses: shipstatic/action@v1
+        with:
+          path: ./web
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mettre à jour web/LIEN.txt
+        env:
+          SHIP_URL: ${{ steps.ship.outputs.url }}
+        run: |
+          PERM="https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html"
+          cat > web/LIEN.txt <<EOF
+          LIEN PERMANENT (ouvre dans Bluefy sur iPhone) :
+          ${PERM}
+
+          MIROIR ShipStatic (expire ~3 jours, redéployé automatiquement) :
+          ${SHIP_URL}
+          EOF
+
+      - name: Commit LIEN.txt
+        env:
+          SHIP_URL: ${{ steps.ship.outputs.url }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/LIEN.txt
+          if git diff --staged --quiet; then
+            echo "LIEN.txt inchangé"
+          else
+            git commit -m "Miroir ShipStatic: ${SHIP_URL} [skip ci]"
+            git push
+          fi
+
+      - name: Résumé déploiement
+        env:
+          SHIP_URL: ${{ steps.ship.outputs.url }}
+          CLAIM_URL: ${{ steps.ship.outputs.claim }}
+        run: |
+          {
+            echo "## NBX Console — liens"
+            echo ""
+            echo "**Permanent (Bluefy)** : https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html"
+            echo ""
+            echo "**Miroir ShipStatic** : ${SHIP_URL}"
+            if [ -n "${CLAIM_URL}" ]; then
+              echo ""
+              echo "Claim (garder le miroir) : ${CLAIM_URL}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
