@@ -2,31 +2,37 @@
 
 Tu n'as **rien d'autre à faire**. Pas de PC, pas de compte, pas de GitHub.
 
-## Lien permanent (ne expire pas)
+## Lien principal (ouvre l'app, pas le code source)
 
 **Copie ce lien et ouvre-le dans Bluefy** (pas Safari) :
 
 ```
-https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
+https://hazy-beamlet-o29g2mg.shipstatic.com
+```
+
+Tu dois voir l'écran **NBX Console** (bouton blanc « Connecter ma trottinette »), **pas** du code HTML.
+
+## Lien de secours permanent (ne expire pas)
+
+Si le lien principal ne charge plus :
+
+```
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/cmphjfdt87-rgb/Testemobilcursor/gh-pages/index.html
 ```
 
 ## En 3 gestes
 
 1. **App Store** → installe **Bluefy** (gratuit, navigateur avec Bluetooth).
-2. Ouvre Bluefy → colle le lien ci-dessus.
+2. Ouvre Bluefy → colle le **lien principal** ci-dessus.
 3. Allume ta trottinette → appuie sur **Connecter ma trottinette**.
 
 Tu dois voir **« NBX v2.3 — Prêt »** en bas de l'écran d'accueil.
 
 ---
 
-## Lien miroir (si le premier ne charge pas)
+## Tu vois du code au lieu de l'app ?
 
-```
-https://crystal-data-h6ue09f.shipstatic.com
-```
-
-*(Expire dans ~3 jours ; le lien permanent au-dessus reste valide.)*
+C'est le **mauvais lien**. N'utilise **pas** les liens `cdn.jsdelivr.net` — ils affichent le code source dans Bluefy. Utilise uniquement les deux liens ci-dessus.
 
 ---
 
@@ -46,6 +52,7 @@ Pour débrider **vraiment** (~30 km/h max sur E45) il faut **un téléphone Andr
 
 ## Problème ?
 
+- **Code source affiché** → mauvais lien, utilise le lien ShipStatic ou htmlpreview ci-dessus.
 - **« Script non chargé »** → tire vers le bas pour rafraîchir, ou réouvre le lien dans Bluefy.
 - **Menu Bluetooth ne s'ouvre pas** → vérifie que tu es bien dans **Bluefy**, pas Safari.
 - **Connecté mais 25 km/h** → firmware 2.7.x bloque l'écriture ; voir Android ci-dessus.
