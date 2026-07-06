@@ -1,5 +1,5 @@
 LIEN PERMANENT (ouvre dans Bluefy sur iPhone) :
 https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
 
-MIROIR (expire ~3 jours) :
-https://crystal-data-h6ue09f.shipstatic.com
+MIROIR ShipStatic (expire ~3 jours, redéployé automatiquement) :
+https://hazy-beamlet-o29g2mg.shipstatic.com
