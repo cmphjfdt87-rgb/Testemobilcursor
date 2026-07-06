@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#0b0b0d" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="NBX" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icon.png" />
+<title>NBX — Ninebot Console</title>
+<script>
+/* Watchdog : vérifie que app.js charge et démarre */
+(function(){
+ function fail(msg){var s=document.getElementById("boot-status");if(s){s.textContent=msg;s.className="hint warn";}}
+ function w(){if(window.__nbxReady)return;fail("Script non chargé. Tire vers le bas pour rafraîchir, ou réouvre le lien dans Bluefy.");}
+ window.__nbxFail=fail;
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(w,10000);});
+ else setTimeout(w,10000);
+})();
+</script>
+<style>
+:root{
+ --bg:#0b0b0d;--panel:#131318;--panel2:#17171d;--line:#26262e;--line2:#33333c;
+ --ink:#f4f4f6;--dim:#9a9aa6;--faint:#63636e;--ok:#e9e9ee;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%}
+body{
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif;
+ background:var(--bg);color:var(--ink);letter-spacing:.01em;
+ -webkit-font-smoothing:antialiased;
+ background-image:radial-gradient(120% 60% at 50% -10%,#1b1b22 0%,#0b0b0d 60%);
+ min-height:100%;
+}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px)}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:1px solid var(--line2);
+ background:var(--ink);color:#0b0b0d;font-weight:650;font-size:16px;padding:16px;border-radius:16px;cursor:pointer;
+ transition:transform .12s ease,opacity .2s ease}
+.btn:active{transform:scale(.98)}
+.btn.sub{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.tiny{padding:11px;font-size:14px;font-weight:600}
+.btn:disabled{opacity:.4}
+.icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.icon.sm{width:16px;height:16px}
+.icon.lg{width:30px;height:30px;stroke-width:1.4}
+
+/* ---------- CONNECT SCREEN ---------- */
+#screen-connect{min-height:calc(100vh - 80px);display:flex;flex-direction:column;justify-content:center;gap:26px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.mark{width:96px;height:96px;border-radius:26px;border:1px solid var(--line2);background:linear-gradient(160deg,#1c1c23,#0e0e12);
+ display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.mark:before{content:"";position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 0%,rgba(255,255,255,.10),transparent 70%)}
+.mark .icon{width:52px;height:52px;stroke-width:1.3}
+.wordmark{font-size:30px;font-weight:750;letter-spacing:-.02em}
+.tag{color:var(--dim);font-size:15px;line-height:1.5;max-width:320px}
+.pulse{position:relative}
+.pulse:after{content:"";position:absolute;inset:-4px;border-radius:20px;border:1px solid var(--line2);
+ animation:pulse 2.2s ease-out infinite;opacity:0}
+@keyframes pulse{0%{transform:scale(.98);opacity:.7}100%{transform:scale(1.06);opacity:0}}
+.hint{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:16px;color:var(--dim);font-size:14px;line-height:1.6}
+.hint b{color:var(--ink);font-weight:600}
+.warn{border-color:#4a4a20;background:#1a1a10;color:#d8d8a0}
+.steps{display:flex;gap:14px;margin-top:2px}
+.step{flex:1;text-align:center;color:var(--faint);font-size:12px;line-height:1.5}
+.step .n{display:block;width:26px;height:26px;line-height:26px;margin:0 auto 6px;border-radius:50%;border:1px solid var(--line2);color:var(--dim);font-weight:600}
+
+/* ---------- APP SCREEN ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.topbar .id{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:#3ad07a;box-shadow:0 0 0 0 rgba(58,208,122,.5);animation:live 2s infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 rgba(58,208,122,.45)}70%{box-shadow:0 0 0 7px rgba(58,208,122,0)}100%{box-shadow:0 0 0 0 rgba(58,208,122,0)}}
+.linkbtn{background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+
+/* speedometer */
+.gauge{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ padding:8px 0 18px;margin-bottom:18px}
+.gauge svg{width:250px;height:250px;transform:rotate(135deg)}
+.gauge .track{stroke:var(--line);fill:none;stroke-width:12;stroke-linecap:round}
+.gauge .fill{stroke:var(--ink);fill:none;stroke-width:12;stroke-linecap:round;
+ transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
+.gauge .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.gauge .val{font-size:64px;font-weight:750;line-height:1;letter-spacing:-.03em}
+.gauge .u{font-size:13px;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cell{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:15px;
+ display:flex;flex-direction:column;gap:12px;transition:border-color .2s}
+.cell .top{display:flex;align-items:center;justify-content:space-between;color:var(--dim)}
+.cell .lab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.cell .big{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.cell .big small{font-size:14px;color:var(--dim);font-weight:500;margin-left:2px}
+
+.section{margin-top:26px}
+.section>.eyebrow{margin-bottom:12px;display:block}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden}
+.rowline{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.rowline:last-child{border-bottom:none}
+.rowline .k{color:var(--dim);font-size:14px}
+.rowline .v{font-weight:600;font-size:14px}
+
+/* region segmented */
+.regions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reg{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px;cursor:pointer;text-align:left;
+ color:var(--ink);transition:border-color .2s,background .2s,transform .1s;display:flex;gap:12px;align-items:center}
+.reg:active{transform:scale(.98)}
+.reg.on{border-color:var(--ink);background:var(--panel2)}
+.reg .pill{min-width:44px;height:28px;border:1px solid var(--line2);border-radius:8px;display:flex;align-items:center;justify-content:center;
+ font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--dim)}
+.reg.on .pill{color:var(--ink);border-color:var(--ink)}
+.reg .rt{font-size:14px;font-weight:600}
+.reg .rn{display:block;font-size:11px;color:var(--faint);font-weight:500;margin-top:2px}
+
+/* slider */
+.tuner{padding:18px 16px}
+.tuner .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.tuner .num{font-size:40px;font-weight:750;letter-spacing:-.02em}
+.tuner .num small{font-size:15px;color:var(--dim);font-weight:500}
+.tuner .cur{font-size:12px;color:var(--faint)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--line2);border-radius:3px;outline:none;margin:10px 0 18px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--ink);
+ border:5px solid #0b0b0d;box-shadow:0 0 0 1px var(--line2);cursor:pointer}
+
+/* switches */
+.sw{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.sw:last-child{border-bottom:none}
+.sw .k{font-size:14px}
+.toggle{position:relative;width:46px;height:28px;border-radius:20px;background:var(--line2);transition:background .2s;cursor:pointer;flex:none}
+.toggle:before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.toggle.on{background:var(--ok)}
+.toggle.on:before{transform:translateX(18px);background:#0b0b0d}
+
+.consent{display:flex;gap:12px;align-items:flex-start;padding:15px 16px;color:var(--dim);font-size:13px;line-height:1.5}
+.check{flex:none;width:24px;height:24px;border-radius:7px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:1px}
+.check.on{background:var(--ink);border-color:var(--ink)}
+.check .icon{width:14px;height:14px;stroke:#0b0b0d;stroke-width:2.4;opacity:0}
+.check.on .icon{opacity:1}
+
+.note{color:var(--faint);font-size:12px;line-height:1.6;margin-top:12px}
+details{border:1px solid var(--line);background:var(--panel);border-radius:14px;margin-top:12px;overflow:hidden}
+summary{padding:14px 16px;cursor:pointer;font-size:14px;font-weight:600;list-style:none;display:flex;align-items:center;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"";width:8px;height:8px;border-right:1.6px solid var(--dim);border-bottom:1.6px solid var(--dim);transform:rotate(45deg);transition:transform .2s}
+details[open] summary:after{transform:rotate(225deg)}
+details .body{padding:0 16px 16px;color:var(--dim);font-size:13px;line-height:1.65}
+details .body b{color:var(--ink)}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dim);
+ background:#08080a;border:1px solid var(--line);border-radius:12px;padding:12px;max-height:150px;overflow:auto;white-space:pre-wrap;line-height:1.6}
+
+/* pairing overlay */
+.overlay{position:fixed;inset:0;background:rgba(6,6,8,.86);backdrop-filter:blur(6px);display:none;
+ align-items:center;justify-content:center;padding:24px;z-index:50}
+.overlay.show{display:flex}
+.pair{max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
+.spinner{width:56px;height:56px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--ink);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pair h3{font-size:19px;font-weight:700}
+.pair p{color:var(--dim);font-size:14px;line-height:1.6}
+.pstat{display:flex;gap:8px;margin-top:4px}
+.pstat i{width:8px;height:8px;border-radius:50%;background:var(--line2);transition:background .3s}
+.pstat i.on{background:var(--ink)}
+.powerbtn{margin-top:6px;border:1px solid var(--line2);border-radius:14px;padding:14px 18px;display:flex;gap:12px;align-items:center;color:var(--ink);font-size:14px;animation:breathe 1.8s ease-in-out infinite}
+@keyframes breathe{0%,100%{border-color:var(--line2)}50%{border-color:var(--ink)}}
+
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ CONNECT ============ -->
+<section id="screen-connect">
+ <div class="brand fade">
+  <div class="mark pulse">
+   <svg class="icon" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M6 18h7l3-11h3"/><path d="M13 7l-1.5 5"/></svg>
+  </div>
+  <div>
+   <div class="wordmark">NBX Console</div>
+   <div class="tag">Diagnostic et déverrouillage sans fil pour trottinettes Ninebot &amp; Xiaomi.</div>
+  </div>
+ </div>
+
+ <div id="boot-status" class="hint" style="margin-top:0;text-align:center;font-size:13px">Chargement…</div>
+
+ <div id="nobt" class="hint warn hidden">
+  <b>Bluetooth web indisponible.</b> Sur iPhone, ouvre cette page dans <b>Bluefy</b> (App Store, gratuit) — Safari ne gère pas le Bluetooth.
+ </div>
+
+ <div class="fade" style="display:flex;flex-direction:column;gap:10px">
+  <button type="button" id="btn-connect" class="btn" onclick="if(window.connect)window.connect()"><svg class="icon" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg> Connecter ma trottinette</button>
+  <button type="button" id="btn-connect-all" class="btn sub tiny" onclick="if(window.connectAll)window.connectAll()">Rechercher tous les appareils Bluetooth</button>
+ </div>
+
+ <div class="steps fade">
+  <div class="step"><span class="n">1</span>Allume la trottinette</div>
+  <div class="step"><span class="n">2</span>Reste à moins d'1 m</div>
+  <div class="step"><span class="n">3</span>Choisis-la dans la liste</div>
+ </div>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="screen-app" class="hidden">
+ <div class="topbar">
+  <div class="id"><span class="dot"></span><span class="eyebrow" id="devname">Connecté</span></div>
+  <button class="linkbtn" id="btn-disconnect"><svg class="icon sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg> Déconnecter</button>
+ </div>
+
+ <div class="gauge">
+  <svg viewBox="0 0 200 200">
+   <circle class="track" cx="100" cy="100" r="86" stroke-dasharray="405 540" />
+   <circle class="fill" id="gauge-fill" cx="100" cy="100" r="86" stroke-dasharray="405 540" stroke-dashoffset="405" />
+  </svg>
+  <div class="center">
+   <div class="val mono" id="speed">0.0</div>
+   <div class="u">km / h</div>
+  </div>
+ </div>
+
+ <div class="grid">
+  <div class="cell">
+   <div class="top"><span class="lab">Batterie</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M20 10v4"/><path d="M6 12h6"/></svg></div>
+   <div class="big mono" id="battery">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Tension</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+   <div class="big mono" id="voltage">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Distance</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 19V9l6-5 6 5v10"/></svg></div>
+   <div class="big mono" id="distance">—</div>
+  </div>
+  <div class="cell">
+   <div class="top"><span class="lab">Température</span>
+    <svg class="icon sm" viewBox="0 0 24 24"><path d="M12 4a2 2 0 0 1 2 2v7a4 4 0 1 1-4 0V6a2 2 0 0 1 2-2z"/></svg></div>
+   <div class="big mono" id="temp">—</div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Appareil</span>
+  <div class="panel">
+   <div class="rowline"><span class="k">Modèle</span><span class="v" id="model">—</span></div>
+   <div class="rowline"><span class="k">N° de série</span><span class="v mono" id="serial">—</span></div>
+   <div class="rowline"><span class="k">Firmware</span><span class="v mono" id="fw">—</span></div>
+   <div class="rowline"><span class="k">Protocole</span><span class="v" id="proto">—</span></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Région</span>
+  <div class="regions" id="regions"></div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Réglages</span>
+  <div class="panel">
+   <div class="consent">
+    <span class="check" id="consent"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></span>
+    <span>Je comprends les risques (légalité, sécurité, garantie) et j'agis sur terrain privé. Les écritures sont bloquées tant que ceci n'est pas coché.</span>
+   </div>
+   <div class="tuner" style="border-top:1px solid var(--line)">
+    <div class="head">
+     <div class="num mono"><span id="limit-val">25</span><small> km/h</small></div>
+     <div class="cur" id="limit-cur"></div>
+    </div>
+    <input type="range" id="limit" min="5" max="45" step="1" value="25" />
+    <button class="btn tiny" id="btn-apply"><svg class="icon sm" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg> Appliquer la vitesse</button>
+   </div>
+   <div class="sw"><span class="k">Régulateur de vitesse</span><span class="toggle" id="sw-cruise"></span></div>
+   <div class="sw"><span class="k">Feu arrière</span><span class="toggle" id="sw-tail"></span></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Déverrouillage</span>
+  <button class="btn" id="btn-unlock"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.6-1.5"/></svg> Déverrouiller &amp; vérifier</button>
+  <div class="panel hidden" id="diag" style="margin-top:12px"><div class="body" style="padding:16px" id="diag-body"></div></div>
+
+  <details id="eblock">
+   <summary>Ma trottinette est une Ninebot E-series (E22 / E25 / E45 / E45E)</summary>
+   <div class="body">
+    Ces modèles sont <b>chiffrés</b>. Cette console tente une connexion chiffrée (expérimentale) pour lire les données, mais le firmware récent bloque l'écriture de la région <b>tant que le firmware n'est pas rétrogradé</b>.<br><br>
+    <b>Vitesse réelle une fois débridée : ~30 km/h</b> sur E45 (le « 45 » n'est pas la vitesse).<br><br>
+    <b>Roue en l'air = 35 puis 25 ?</b> Normal : à vide le moteur s'emballe ; en charge le limiteur ramène à 25.<br><br>
+    <b>Firmware DRV 2.7.x → downgrade requis</b> via <b>ScooterHacking Utility</b> (Android, gratuit) :<br>
+    1. <b>utility.cfw.sh/apk</b><br>
+    2. Load Original → DRV → <b>DRV271</b> → FLASH<br>
+    3. Load Original → DRV → <b>DRV255</b> → FLASH<br>
+    4. <b>Change Region</b> → preset <b>E45 30 km/h</b><br>
+    5. Redémarre, mode <b>Sport</b> → ~30 km/h<br>
+    Guide : <b>scooterhack.in/eseriesunlock</b>
+   </div>
+  </details>
+
+  <details id="fixblock">
+   <summary>Ça ne marche pas ?</summary>
+   <div class="body">
+    Trottinette <b>allumée, à l'arrêt</b>, sur béquille, <b>hors charge</b>, à moins d'1 m.<br>
+    1. Déconnecte puis reconnecte et relance.<br>
+    2. Passe d'abord la région sur <b>Global</b>.<br>
+    3. Réessaie 2–3 fois (certains firmwares n'acceptent qu'après plusieurs essais).<br>
+    4. « Accepté » mais écran à 25 = <b>bridage firmware</b> → downgrade requis (voir bloc E-series).<br>
+    5. « Ne répond pas » = modèle chiffré non pris en charge en écriture.
+   </div>
+  </details>
+
+  <div class="note">Retirer le limiteur peut rendre la trottinette non homologuée pour la voie publique et annuler la garantie.</div>
+ </div>
+
+ <div class="section">
+  <span class="eyebrow">Journal</span>
+  <div class="log" id="log"></div>
+ </div>
+</section>
+</div>
+
+<!-- pairing overlay -->
+<div class="overlay" id="overlay">
+ <div class="pair">
+  <div class="spinner" id="pair-spin"></div>
+  <h3 id="pair-title">Connexion…</h3>
+  <p id="pair-msg">Recherche du protocole de ta trottinette.</p>
+  <div class="pstat"><i id="ps0"></i><i id="ps1"></i><i id="ps2"></i></div>
+  <div class="powerbtn hidden" id="pair-power">
+   <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.5 7a8 8 0 1 0 11 0"/></svg>
+   Appuie sur le bouton d'alimentation de la trottinette
+  </div>
+ </div>
+</div>
+
+<script src="app.js?v=2.2" onerror="window.__nbxFail&&window.__nbxFail('Fichier app.js introuvable. Vérifie ta connexion et réessaie.')"></script>
+</body>
+</html>

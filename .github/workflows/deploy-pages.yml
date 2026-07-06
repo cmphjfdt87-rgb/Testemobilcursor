@@ -1,9 +1,16 @@
-name: Deploy GitHub Pages
+name: Deploy web app (GitHub Pages)
+
+# Publie l'app Web Bluetooth (dossier web/) sur GitHub Pages — hébergement
+# gratuit, HTTPS, aucune configuration serveur. Web Bluetooth EXIGE HTTPS,
+# ce que Pages fournit.
+#
+# Une fois activé (Settings → Pages → Source = GitHub Actions), l'URL est :
+#   https://<utilisateur>.github.io/<depot>/
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: ["main", "cursor/ninebot-ios-app-0594"]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -12,14 +19,14 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
@@ -27,6 +34,6 @@ jobs:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: web
       - id: deployment
         uses: actions/deploy-pages@v4

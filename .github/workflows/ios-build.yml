@@ -1,0 +1,107 @@
+name: Build iOS app
+
+# Compile l'app sur un Mac dans le cloud (aucun PC/Mac local requis).
+# - Le job "build" vérifie simplement que le projet compile (aucun compte Apple
+#   nécessaire).
+# - Le job "testflight" (optionnel) archive, signe et envoie l'app sur
+#   TestFlight. Il ne s'exécute que si les secrets Apple sont configurés
+#   (voir INSTALL-SANS-PC.md).
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Compilation (vérification)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sélectionner Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      - name: Compiler (sans signature)
+        run: |
+          xcodebuild \
+            -project NinebotCompanion.xcodeproj \
+            -scheme NinebotCompanion \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            clean build \
+            CODE_SIGNING_ALLOWED=NO | xcpretty || \
+          xcodebuild \
+            -project NinebotCompanion.xcodeproj \
+            -scheme NinebotCompanion \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            clean build \
+            CODE_SIGNING_ALLOWED=NO
+
+  testflight:
+    name: Déploiement TestFlight (optionnel)
+    runs-on: macos-15
+    needs: build
+    # Ne tourne que si le secret de clé App Store Connect est présent.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier la présence des secrets Apple
+        id: guard
+        run: |
+          if [ -z "${{ secrets.ASC_KEY_ID }}" ]; then
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+            echo "Secrets Apple absents — étape TestFlight ignorée."
+          else
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sélectionner Xcode
+        if: steps.guard.outputs.has_secrets == 'true'
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      # La clé API App Store Connect (.p8) évite de gérer certificats/profils
+      # manuellement. Renseignez ces secrets dans Settings → Secrets → Actions :
+      #   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (contenu du fichier .p8)
+      - name: Écrire la clé App Store Connect
+        if: steps.guard.outputs.has_secrets == 'true'
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.ASC_KEY_P8 }}" > ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+
+      - name: Archiver
+        if: steps.guard.outputs.has_secrets == 'true'
+        run: |
+          xcodebuild archive \
+            -project NinebotCompanion.xcodeproj \
+            -scheme NinebotCompanion \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/NinebotCompanion.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+
+      - name: Exporter et envoyer sur TestFlight
+        if: steps.guard.outputs.has_secrets == 'true'
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>destination</key><string>upload</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/NinebotCompanion.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
