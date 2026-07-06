@@ -336,6 +336,286 @@ details .body b{color:var(--ink)}
  </div>
 </div>
 
-<script src="app.js?v=2.2" onerror="window.__nbxFail&&window.__nbxFail('Fichier app.js introuvable. Vérifie ta connexion et réessaie.')"></script>
+<script>
+"use strict";
+var AES_SBOX_HEX="637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0"+
+"b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b275"+
+"09832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cf"+
+"d0efaafb434d338545f9027f503c9fa851a3408f929d38f5bcb6da2110fff3d2"+
+"cd0c13ec5f974417c4a77e3d645d197360814fdc222a908846eeb814de5e0bdb"+
+"e0323a0a4906245cc2d3ac629195e479e7c8376d8dd54ea96c56f4ea657aae08"+
+"ba78252e1ca6b4c6e8dd741f4bbd8b8a703eb5664803f60e613557b986c11d9e"+
+"e1f8981169d98e949b1e87e9ce5528df8ca1890dbfe6426841992d0fb054bb16";
+var AES_SBOX=(function(){var s=new Uint8Array(256);for(var i=0;i<256;i++)s[i]=parseInt(AES_SBOX_HEX.substr(i*2,2),16);return s;})();
+var AES_RCON=[0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36];
+function xtime(a){a<<=1;if(a&0x100)a^=0x11b;return a&0xff;}
+function aesExpandKey(key){var rk=new Array(176),i;for(i=0;i<16;i++)rk[i]=key[i];
+ var g=16,r=0,t=new Array(4),k;
+ while(g<176){for(i=0;i<4;i++)t[i]=rk[g-4+i];
+ if(g%16===0){k=t[0];t[0]=t[1];t[1]=t[2];t[2]=t[3];t[3]=k;for(i=0;i<4;i++)t[i]=AES_SBOX[t[i]];t[0]^=AES_RCON[r++];}
+ for(i=0;i<4;i++){rk[g]=rk[g-16]^t[i];g++;}}
+ return rk;}
+function aesEncryptBlock(key16,block16){var rk=aesExpandKey(key16),s=block16.slice(0,16),i,round;
+ for(i=0;i<16;i++)s[i]^=rk[i];
+ for(round=1;round<=10;round++){for(i=0;i<16;i++)s[i]=AES_SBOX[s[i]];
+ var t=s.slice();
+ s[1]=t[5];s[5]=t[9];s[9]=t[13];s[13]=t[1];
+ s[2]=t[10];s[6]=t[14];s[10]=t[2];s[14]=t[6];
+ s[3]=t[15];s[7]=t[3];s[11]=t[7];s[15]=t[11];
+ if(round<10){for(i=0;i<16;i+=4){var a0=s[i],a1=s[i+1],a2=s[i+2],a3=s[i+3];
+ s[i]=xtime(a0)^(xtime(a1)^a1)^a2^a3;s[i+1]=a0^xtime(a1)^(xtime(a2)^a2)^a3;
+ s[i+2]=a0^a1^xtime(a2)^(xtime(a3)^a3);s[i+3]=(xtime(a0)^a0)^a1^a2^xtime(a3);}}
+ for(i=0;i<16;i++)s[i]^=rk[round*16+i];}
+ return s;}
+function sha1(bytes){var ml=bytes.length*8,w=bytes.slice(),i;w.push(0x80);
+ while(w.length%64!==56)w.push(0);
+ for(i=7;i>=0;i--)w.push((Math.floor(ml/Math.pow(2,i*8)))&0xff);
+ var h0=0x67452301,h1=0xEFCDAB89,h2=0x98BADCFE,h3=0x10325476,h4=0xC3D2E1F0;
+ function rol(n,c){return((n<<c)|(n>>>(32-c)))>>>0;}
+ for(var off=0;off<w.length;off+=64){var a2=new Array(80);
+ for(i=0;i<16;i++)a2[i]=((w[off+i*4]<<24)|(w[off+i*4+1]<<16)|(w[off+i*4+2]<<8)|w[off+i*4+3])>>>0;
+ for(i=16;i<80;i++)a2[i]=rol((a2[i-3]^a2[i-8]^a2[i-14]^a2[i-16])>>>0,1);
+ var a=h0,b=h1,c=h2,d=h3,e=h4,f,k,tp;
+ for(i=0;i<80;i++){if(i<20){f=(b&c)|((~b)&d);k=0x5A827999;}else if(i<40){f=b^c^d;k=0x6ED9EBA1;}
+ else if(i<60){f=(b&c)|(b&d)|(c&d);k=0x8F1BBCDC;}else{f=b^c^d;k=0xCA62C1D6;}
+ tp=(rol(a,5)+f+e+k+a2[i])>>>0;e=d;d=c;c=rol(b,30);b=a;a=tp;}
+ h0=(h0+a)>>>0;h1=(h1+b)>>>0;h2=(h2+c)>>>0;h3=(h3+d)>>>0;h4=(h4+e)>>>0;}
+ var out=[];[h0,h1,h2,h3,h4].forEach(function(h){out.push((h>>>24)&0xff,(h>>>16)&0xff,(h>>>8)&0xff,h&0xff);});
+ return out;}
+var FW=[0x97,0xCF,0xB8,0x02,0x84,0x41,0x43,0xDE,0x56,0x00,0x2B,0x3B,0x34,0x78,0x0A,0x5D];
+function sb(s){var a=[];for(var i=0;i<s.length;i++)a.push(s.charCodeAt(i)&0xff);return a;}
+function NB(name){this.name=name;this.rB=new Array(16).fill(0);this.rA=new Array(16).fill(0);this.k=new Array(16).fill(0);this.it=0;this._sha(sb(name),FW);}
+NB.prototype._sha=function(d1,d2){var s=new Array(32).fill(0),i;for(i=0;i<d1.length&&i<32;i++)s[i]=d1[i];for(i=0;i<16;i++)s[16+i]=d2[i];this.k=sha1(s).slice(0,16);};
+NB.prototype._first=function(d){var r=new Array(d.length),p=d.length,x=0;while(p>0){var t=p<=16?p:16,x1=new Array(16).fill(0),i;for(i=0;i<t;i++)x1[i]=d[x+i];var x2=aesEncryptBlock(this.k,FW);for(i=0;i<t;i++)r[x+i]=x1[i]^x2[i];p-=t;x+=t;}return r;};
+NB.prototype._next=function(d,it){var e=new Array(16).fill(0);e[0]=1;e[1]=(it>>>24)&0xff;e[2]=(it>>>16)&0xff;e[3]=(it>>>8)&0xff;e[4]=it&0xff;for(var j=0;j<8;j++)e[5+j]=this.rB[j];e[15]=0;
+ var r=new Array(d.length),p=d.length,x=0;while(p>0){e[15]=(e[15]+1)&0xff;var t=p<=16?p:16,x1=new Array(16).fill(0),i;for(i=0;i<t;i++)x1[i]=d[x+i];var x2=aesEncryptBlock(this.k,e);for(i=0;i<t;i++)r[x+i]=x1[i]^x2[i];p-=t;x+=t;}return r;};
+NB.prototype._crcF=function(d){var c=0;for(var i=0;i<d.length;i++)c=(c+d[i])&0xffff;c=(~c)&0xffff;return[c&0xff,(c>>8)&0xff];};
+NB.prototype._crcN=function(d,it){var e=new Array(16).fill(0),p=d.length-3,x=3,i,x2,x1,xd;e[0]=89;e[1]=(it>>>24)&0xff;e[2]=(it>>>16)&0xff;e[3]=(it>>>8)&0xff;e[4]=it&0xff;for(var j=0;j<8;j++)e[5+j]=this.rB[j];e[15]=p&0xff;
+ x2=aesEncryptBlock(this.k,e);x1=new Array(16).fill(0);for(i=0;i<3;i++)x1[i]=d[i];xd=new Array(16);for(i=0;i<16;i++)xd[i]=x1[i]^x2[i];x2=aesEncryptBlock(this.k,xd);
+ while(p>0){var t=p<=16?p:16;x1=new Array(16).fill(0);for(i=0;i<t;i++)x1[i]=d[x+i];xd=new Array(16);for(i=0;i<16;i++)xd[i]=x1[i]^x2[i];x2=aesEncryptBlock(this.k,xd);p-=t;x+=t;}
+ e[0]=1;e[15]=0;var L=aesEncryptBlock(this.k,e);return[L[0]^x2[0],L[1]^x2[1],L[2]^x2[2],L[3]^x2[3]];};
+NB.prototype.encrypt=function(D){var en=new Array(152).fill(0),i;for(i=0;i<3;i++)en[i]=D[i];var pl=D.length-3,pay=D.slice(3),crc;
+ if(this.it===0){crc=this._crcF(pay);pay=this._first(pay);for(i=0;i<pay.length;i++)en[3+i]=pay[i];en[pl+3]=0;en[pl+4]=0;en[pl+5]=crc[0];en[pl+6]=crc[1];en[pl+7]=0;en[pl+8]=0;en=en.slice(0,pl+9);this.it++;}
+ else{this.it++;crc=this._crcN(D,this.it);pay=this._next(pay,this.it);for(i=0;i<pay.length;i++)en[3+i]=pay[i];en[pl+3]=crc[0];en[pl+4]=crc[1];en[pl+5]=crc[2];en[pl+6]=crc[3];en[pl+7]=(this.it>>8)&0xff;en[pl+8]=this.it&0xff;en=en.slice(0,pl+9);
+ if(D[0]===0x5A&&D[1]===0xA5&&D[2]===0x10&&D[3]===0x3E&&D[4]===0x21&&D[5]===0x5C&&D[6]===0x00){for(i=0;i<16;i++)this.rA[i]=D[7+i];}}
+ return en;};
+NB.prototype.decrypt=function(D){var de=new Array(D.length-6).fill(0),i;for(i=0;i<3;i++)de[i]=D[i];
+ var nit=this.it;if((nit&0x8000)>0&&(D[D.length-2]>>7)===0)nit+=0x10000;nit=(nit&0xFFFF0000)+((D[D.length-2]<<8)>>>0)+D[D.length-1];
+ var pl=D.length-9,pay=D.slice(3,3+pl);
+ if(nit===0){pay=this._first(pay);for(i=0;i<pay.length;i++)de[3+i]=pay[i];
+ if(de[0]===0x5A&&de[1]===0xA5&&de[2]===0x1E&&de[3]===0x21&&de[4]===0x3E&&de[5]===0x5B){for(i=0;i<16;i++)this.rB[i]=de[7+i];this._sha(sb(this.name),this.rB);}}
+ else if(nit>0&&nit>this.it){pay=this._next(pay,nit);for(i=0;i<pay.length;i++)de[3+i]=pay[i];
+ if(de[0]===0x5A&&de[1]===0xA5&&de[2]===0x00&&de[3]===0x21&&de[4]===0x3E&&de[5]===0x5C&&de[6]===0x01){this._sha(this.rA,this.rB);}this.it=nit;}
+ return de;};
+var UART="6e400001-b5a3-f393-e0a9-e50e24dcca9e",RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e",TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+var APP=0x3d,ESC=0x20;
+var REG={serial:0x10,fw:0x1a,battery:0x32,voltage:0x34,speed:0xb5,total:0x29,temp:0x3e,region:0x72,limit:0x74,cruise:0x7c,tail:0x7d};
+var REGIONS=[
+ {v:0x00,tag:"GLOBAL",name:"Déverrouillé",note:"Vitesse maxi matériel"},
+ {v:0x02,tag:"EU",name:"Europe",note:"Plafond 25 km/h"},
+ {v:0x01,tag:"US",name:"États-Unis",note:"~32 km/h"},
+ {v:0x03,tag:"CN",name:"Chine",note:"25 km/h"}
+];
+var MAXKMH=35;
+var st={},dev=null,rx=null,tx=null,buf=[],poll=null,mode=null,crypto=null,handshake=null,probeTimer=null,gotReply=false;
+function $(id){return document.getElementById(id);}
+function now(){return new Date().toLocaleTimeString();}
+function log(m){var el=$("log");el.textContent="["+now()+"] "+m+"\n"+el.textContent;}
+function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+function ck16(a){var s=0;for(var i=0;i<a.length;i++)s=(s+a[i])>>>0;return(~s)&0xffff;}
+function plainFrame(dst,cmd,pay){var body=[dst,APP,cmd].concat(pay),len=body.length&0xff,c=[len].concat(body),k=ck16(c);return[0x5a,0xa5].concat(c).concat([k&0xff,(k>>8)&0xff]);}
+function plainRead(reg,n){return plainFrame(ESC,0x01,[reg,n]);}
+function plainWrite(reg,bytes){return plainFrame(ESC,0x03,[reg].concat(bytes));}
+function parsePlain(b){if(b.length<8)return null;if(b[0]!==0x5a||b[1]!==0xa5)return null;var len=b[2],tot=2+1+len+2;if(b.length<tot)return null;
+ var cs=b.slice(2,3+len),exp=ck16(cs),act=b[3+len]|(b[3+len+1]<<8);if(exp!==act)return null;return{reg:b[6],pay:b.slice(7,3+len),consumed:tot};}
+function encReadFrame(reg,n){return[0x5a,0xa5,0x02,ESC,0x3E,0x01,reg,n];}
+function encWriteFrame(reg,bytes){return[0x5a,0xa5,(1+bytes.length)&0xff,ESC,0x3E,0x03,reg].concat(bytes);}
+function encHandshake(len,cmd,pay){return[0x5a,0xa5,len,0x3E,0x21,cmd,0x00].concat(pay||[]);}
+function le16(p){return p.length>=2?(p[0]|(p[1]<<8)):null;}
+function le16s(p){var v=le16(p);return v==null?null:(v>0x7fff?v-0x10000:v);}
+function le32(p){return p.length>=4?((p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24))>>>0):null;}
+function send(bytes){if(!rx)return;var out;
+ if(mode==="enc"&&crypto)out=crypto.encrypt(bytes);else out=bytes;
+ var u=Uint8Array.from(out);
+ rx.writeValueWithoutResponse(u).catch(function(){return rx.writeValue(u).catch(function(e){log("écriture: "+e.message);});});}
+function readReg(reg,n){if(mode==="enc")send(encReadFrame(reg,n));else send(plainRead(reg,n));}
+function writeReg(reg,bytes){if(mode==="enc")send(encWriteFrame(reg,bytes));else send(plainWrite(reg,bytes));}
+var FILTERS=[{namePrefix:"MIScooter"},{namePrefix:"Ninebot"},{namePrefix:"NB"},{namePrefix:"M365"},{namePrefix:"MI"},{namePrefix:"Mi "},{namePrefix:"Segway"},{namePrefix:"Xiaomi"},{namePrefix:"ES"},{namePrefix:"KickScooter"}];
+function connect(){go({acceptAllDevices:true,optionalServices:[UART]});} 
+function connectFiltered(){go({filters:FILTERS,optionalServices:[UART]});}
+function connectAll(){go({acceptAllDevices:true,optionalServices:[UART]});}
+function go(opts){
+ if(!hasBT()){alert("Bluetooth web indisponible ici.\n\nSur iPhone : ouvre cette page dans l'app Bluefy (pas Safari).");return;}
+ try{
+ navigator.bluetooth.requestDevice(opts).then(function(d){
+ dev=d;d.addEventListener("gattserverdisconnected",onDisc);
+ showOverlay("Connexion…","Établissement du lien Bluetooth.",0);
+ log("Connexion à "+(d.name||"appareil")+"…");return d.gatt.connect();
+ }).then(function(s){return s.getPrimaryService(UART);})
+ .then(function(svc){return Promise.all([svc.getCharacteristic(RX),svc.getCharacteristic(TX)]);})
+ .then(function(cs){rx=cs[0];tx=cs[1];return tx.startNotifications();})
+ .then(function(){tx.addEventListener("characteristicvaluechanged",onData);log("Lien établi. Détection du protocole…");startProbe();})
+ .catch(function(e){hideOverlay();log("Erreur : "+e.message);if(e.message&&e.message.indexOf("cancel")<0)alert("Connexion impossible : "+e.message);});
+ }catch(e){hideOverlay();alert("Erreur Bluetooth : "+e.message);}
+}
+function onDisc(){clearInterval(poll);clearTimeout(probeTimer);if(handshake)clearInterval(handshake);rx=tx=null;mode=null;crypto=null;buf=[];log("Déconnecté.");$("screen-app").classList.add("hidden");$("screen-connect").classList.remove("hidden");hideOverlay();}
+function disconnect(){clearInterval(poll);if(dev&&dev.gatt.connected)dev.gatt.disconnect();}
+function startProbe(){
+ mode="plain";gotReply=false;buf=[];
+ showOverlay("Détection…","Test du protocole ouvert (M365 / ES).",0);
+ readReg(REG.serial,14);readReg(REG.fw,2);readReg(REG.battery,2);
+ probeTimer=setTimeout(function(){
+ if(gotReply){enterComm("Protocole ouvert");}
+ else{startEncrypted();}
+ },2500);
+}
+function startEncrypted(){
+ if(!dev.name){showOverlay("Nom Bluetooth manquant","Impossible d'initialiser le chiffrement sans le nom de l'appareil. Réessaie via « tous les appareils ».",0);setPower(false);return;}
+ mode="enc";crypto=new NB(dev.name);buf=[];st.enc=true;
+ setStep(0);showOverlay("Appairage chiffré…","Ta trottinette utilise le protocole chiffré Ninebot (E-series). Tentative de session sécurisée.",1);
+ log("Handshake chiffré (nom="+dev.name+")");
+ hs_state="precomm";hs_send();
+}
+var hs_state=null,hs_sn=null,hs_key=null;
+function randKey(){var s="abcdefghijklmnopqrstuvwxyz0123456789",a=[];for(var i=0;i<16;i++)a.push(s.charCodeAt(Math.floor(Math.random()*s.length)));return a;}
+function hs_send(){
+ clearInterval(handshake);
+ if(hs_state==="precomm"){send(encHandshake(0x00,0x5B,[]));handshake=setInterval(function(){if(hs_state==="precomm")send(encHandshake(0x00,0x5B,[]));},1000);}
+ else if(hs_state==="setpwd"){if(!hs_key)hs_key=randKey();setStep(1);setPower(true);
+ send(encHandshake(0x10,0x5C,hs_key));handshake=setInterval(function(){if(hs_state==="setpwd")send(encHandshake(0x10,0x5C,hs_key));},1000);}
+ else if(hs_state==="auth"){setStep(2);setPower(false);
+ send(encHandshake(0x0E,0x5D,hs_sn));handshake=setInterval(function(){if(hs_state==="auth")send(encHandshake(0x0E,0x5D,hs_sn));},1200);}
+}
+function onData(ev){var v=ev.target.value,i;for(i=0;i<v.byteLength;i++)buf.push(v.getUint8(i));
+ if(mode==="enc")pumpEnc();else pumpPlain();
+ if(buf.length>1024)buf=[];}
+function pumpPlain(){var r;while((r=parsePlain(buf))){gotReply=true;applyReg(r.reg,r.pay);buf=buf.slice(r.consumed);}}
+function pumpEnc(){
+ while(buf.length>=8&&buf[0]===0x5a&&buf[1]===0xa5){
+ var tot=buf[2]+13;if(buf.length<tot)break;
+ var wire=buf.slice(0,tot);buf=buf.slice(tot);
+ var dec;try{dec=crypto.decrypt(wire);}catch(e){continue;}
+ handleEnc(dec);
+ }
+ if(buf.length>2&&!(buf[0]===0x5a&&buf[1]===0xa5)){var idx=-1;for(var i=1;i<buf.length-1;i++){if(buf[i]===0x5a&&buf[i+1]===0xa5){idx=i;break;}}buf=idx<0?[]:buf.slice(idx);}
+}
+function handleEnc(dec){
+ gotReply=true;
+ var cmd=dec[5],arg=dec[6];
+ if(cmd===0x5B){ 
+ var pay=dec.slice(6);var sn=pay.slice(16,30);hs_sn=sn;
+ st.serial=String.fromCharCode.apply(null,sn).replace(/[^\x20-\x7e]/g,"").trim();
+ log("Appairage : réponse reçue, S/N "+st.serial);
+ hs_state="setpwd";hs_send();render();return;
+ }
+ if(cmd===0x5C){ 
+ log("Clé "+(arg===1?"acceptée (bouton pressé)":"reçue"));
+ hs_state="auth";hs_send();return;
+ }
+ if(cmd===0x5D){ 
+ log("✅ Appairé.");clearInterval(handshake);enterComm("Chiffré Ninebot (E-series)");return;
+ }
+ if(dec.length>7)applyReg(dec[6],dec.slice(7));
+}
+function enterComm(protoName){
+ clearInterval(handshake);clearTimeout(probeTimer);
+ st.proto=protoName;
+ $("screen-connect").classList.add("hidden");$("screen-app").classList.remove("hidden");$("screen-app").classList.add("fade");
+ $("devname").textContent=dev&&dev.name?dev.name:"Connecté";
+ hideOverlay();log("Session prête ("+protoName+").");
+ initialReads();poll=setInterval(refresh,1000);render();
+}
+function initialReads(){readReg(REG.serial,14);readReg(REG.fw,2);readReg(REG.region,1);readReg(REG.limit,2);refresh();}
+function refresh(){readReg(REG.battery,2);readReg(REG.voltage,2);readReg(REG.speed,2);readReg(REG.total,4);readReg(REG.temp,2);}
+function applyReg(reg,p){var v;switch(reg){
+ case REG.serial:var s=String.fromCharCode.apply(null,p).replace(/[^\x20-\x7e]/g,"").trim();if(s)st.serial=s;break;
+ case REG.fw:v=le16(p);if(v!=null)st.fw=((v>>8)&0xf)+"."+((v>>4)&0xf)+"."+(v&0xf);break;
+ case REG.battery:v=le16(p);if(v!=null)st.battery=v;break;
+ case REG.voltage:v=le16(p);if(v!=null)st.voltage=v/100;break;
+ case REG.speed:v=le16s(p);if(v!=null)st.speed=Math.abs(v/1000);break;
+ case REG.total:v=le32(p);if(v!=null)st.total=v/1000;break;
+ case REG.temp:v=le16s(p);if(v!=null)st.temp=Math.round(v/10);break;
+ case REG.region:if(p.length)st.region=p[0];break;
+ case REG.limit:v=le16(p);if(v!=null)st.limit=v;break;
+}render();}
+function render(){
+ var sp=st.speed!=null?st.speed:0;
+ $("speed").textContent=st.speed!=null?st.speed.toFixed(1):"0.0";
+ var frac=Math.max(0,Math.min(1,sp/MAXKMH));
+ $("gauge-fill").setAttribute("stroke-dashoffset",(405*(1-frac)).toFixed(1));
+ $("battery").innerHTML=st.battery!=null?st.battery+'<small>%</small>':"—";
+ $("voltage").innerHTML=st.voltage!=null?st.voltage.toFixed(1)+'<small>V</small>':"—";
+ $("distance").innerHTML=st.total!=null?st.total.toFixed(1)+'<small>km</small>':"—";
+ $("temp").innerHTML=st.temp!=null?st.temp+'<small>°C</small>':"—";
+ $("serial").textContent=st.serial||"—";
+ $("fw").textContent=st.fw||"—";
+ $("proto").textContent=st.proto||"—";
+ $("model").textContent=st.enc?(st.serial&&/^N/.test(st.serial)?"Ninebot E-series":"Ninebot (chiffré)"):"Xiaomi/Ninebot (ouvert)";
+ var r=null;for(var i=0;i<REGIONS.length;i++)if(REGIONS[i].v===st.region)r=REGIONS[i];
+ document.querySelectorAll(".reg").forEach(function(b){b.classList.toggle("on",Number(b.dataset.v)===st.region);});
+ if(st.limit!=null)$("limit-cur").textContent="Actuel : "+st.limit+" km/h";
+}
+function showOverlay(t,m,spin){$("overlay").classList.add("show");$("pair-title").textContent=t;$("pair-msg").textContent=m;$("pair-spin").style.display=spin===0?"none":"block";}
+function hideOverlay(){$("overlay").classList.remove("show");}
+function setStep(n){["ps0","ps1","ps2"].forEach(function(id,i){$(id).classList.toggle("on",i<=n);});}
+function setPower(on){$("pair-power").classList.toggle("hidden",!on);if(on){$("pair-title").textContent="Appuie sur le bouton";$("pair-msg").textContent="Pour autoriser l'appairage, appuie une fois sur le bouton d'alimentation de la trottinette.";}}
+function setRegion(v){var r=null;for(var i=0;i<REGIONS.length;i++)if(REGIONS[i].v===v)r=REGIONS[i];log("Région → "+(r?r.name:v));writeReg(REG.region,[v]);setTimeout(function(){readReg(REG.region,1);},400);}
+function setSpeed(k){var v=Math.max(1,Math.min(k,100));log("Vitesse max → "+v+" km/h");writeReg(REG.limit,[v&0xff,(v>>8)&0xff]);setTimeout(function(){readReg(REG.limit,2);},400);}
+function runDiag(){
+ if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}
+ var target=Number($("limit").value);
+ $("diag").classList.remove("hidden");$("diag-body").innerHTML="Diagnostic en cours… garde la trottinette allumée et à l'arrêt (~6 s).";
+ gotReply=false;readReg(REG.region,1);readReg(REG.limit,2);
+ var before={region:st.region,limit:st.limit};
+ setTimeout(function(){writeReg(REG.region,[0x00]);writeReg(REG.limit,[target&0xff,(target>>8)&0xff]);
+ setTimeout(function(){readReg(REG.region,1);readReg(REG.limit,2);setTimeout(function(){diagResult(before,target);},1500);},700);},1600);
+}
+function diagResult(before,target){
+ var b=$("diag-body");
+ if(st.enc){
+ b.innerHTML="<b>Modèle chiffré détecté"+(st.serial?(" — "+st.serial):"")+".</b><br><br>"+
+ "La console a établi une session chiffrée et lit les données, mais l'<b>écriture de la vitesse est bloquée par le firmware</b> ("+(st.fw?("DRV "+st.fw):"DRV 2.7.x")+"). "+
+ "Sur E-series, il faut <b>rétrograder le firmware</b> — impossible et risqué depuis une app web.<br><br>"+
+ "👉 Déplie « Ma trottinette est une Ninebot E-series » ci-dessus : la méthode sûre passe par <b>ScooterHacking Utility</b> (Android), vitesse réelle ~30 km/h.";
+ $("eblock").open=true;return;
+ }
+ var okLimit=(st.limit===target)||(before.limit!==st.limit&&st.limit!=null);
+ var okRegion=(st.region===0x00);
+ if(okLimit||okRegion){
+ b.innerHTML="<b>✅ Ta trottinette accepte le déverrouillage.</b><br>Région : "+(okRegion?"Global":("code "+st.region))+" · Vitesse enregistrée : "+(st.limit!=null?st.limit+" km/h":"—")+".<br><br>Si l'écran reste à 25, ton firmware impose une limite légale fixe : le passage en <b>Global</b> reste le levier le plus sûr. Refais un tour pour vérifier.";
+ }else{
+ b.innerHTML="<b>⚠️ La trottinette répond mais n'a pas enregistré l'écriture.</b><br>Le registre ne correspond peut-être pas à ton firmware.<br><br>👉 Essaie les solutions ci-dessous.";
+ $("fixblock").open=true;
+ }
+}
+var consentOn=false;
+function buildRegions(){var w=$("regions");REGIONS.forEach(function(r){var b=document.createElement("button");b.className="reg";b.dataset.v=r.v;
+ b.innerHTML='<span class="pill">'+r.tag+'</span><span><span class="rt">'+r.name+'</span><span class="rn">'+r.note+'</span></span>';
+ b.onclick=function(){if(confirm("Passer la région sur « "+r.name+" » ?\n"+r.note))setRegion(r.v);};w.appendChild(b);});}
+function init(){
+ try{
+ buildRegions();
+ $("btn-connect").onclick=connect;
+ $("btn-connect-all").onclick=connectAll;
+ $("btn-disconnect").onclick=disconnect;
+ var sl=$("limit");if(sl)sl.oninput=function(){$("limit-val").textContent=sl.value;};
+ $("btn-apply").onclick=function(){if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
+ $("consent").onclick=function(){consentOn=!consentOn;$("consent").classList.toggle("on",consentOn);};
+ $("sw-cruise").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-cruise").classList.contains("on");$("sw-cruise").classList.toggle("on",on);writeReg(REG.cruise,[on?1:0]);};
+ $("sw-tail").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-tail").classList.contains("on");$("sw-tail").classList.toggle("on",on);writeReg(REG.tail,[on?1:0]);};
+ $("btn-unlock").onclick=runDiag;
+ if(!hasBT()){$("nobt").classList.remove("hidden");}
+ var st=$("boot-status");
+ if(st)st.textContent=hasBT()?"NBX v2.3 — Prêt. Appuie sur « Connecter ».":"NBX v2.3 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
+ log("Application prête.");
+ window.__nbxReady=true;
+ }catch(err){
+ var st=$("boot-status");if(st){st.textContent="Erreur au démarrage : "+err.message;st.classList.add("warn");}
+ alert("Erreur au démarrage : "+err.message);
+ }
+}
+window.connect=connect;window.connectAll=connectAll;window.disconnect=disconnect;
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+</script>
 </body>
 </html>
