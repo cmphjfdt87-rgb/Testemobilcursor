@@ -7,7 +7,7 @@ Tu n'as **rien d'autre à faire**. Pas de PC, pas de compte, pas de GitHub.
 **Copie ce lien et ouvre-le dans Bluefy** (pas Safari) :
 
 ```
-https://blazing-petal-mt9jta5.shipstatic.com
+https://holo-kernel-5v4eeh6.shipstatic.com
 ```
 
 Tu dois voir l'écran **NBX Console** (bouton blanc « Connecter ma trottinette »), **pas** du code HTML.
