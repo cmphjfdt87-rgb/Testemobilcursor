@@ -1,5 +1,8 @@
-LIEN PERMANENT (ouvre dans Bluefy sur iPhone) :
-https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
+LIEN PRINCIPAL (ouvre dans Bluefy — affiche l'app, pas le code) :
+https://hazy-beamlet-o29g2mg.shipstatic.com
 
-MIROIR (expire ~3 jours) :
-https://crystal-data-h6ue09f.shipstatic.com
+LIEN DE SECOURS PERMANENT (ne expire pas) :
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/cmphjfdt87-rgb/Testemobilcursor/gh-pages/index.html
+
+NE PAS UTILISER (affiche le code source dans Bluefy) :
+https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
