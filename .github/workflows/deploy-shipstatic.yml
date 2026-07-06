@@ -31,7 +31,7 @@ jobs:
           path: ./web
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Mettre à jour web/LIEN.txt
+      - name: Mettre à jour web/LIEN.txt et OUVRE-MOI.md
         env:
           SHIP_URL: ${{ steps.ship.outputs.url }}
         run: |
@@ -46,6 +46,7 @@ jobs:
           NE PAS UTILISER (affiche le code source dans Bluefy) :
           https://cdn.jsdelivr.net/gh/cmphjfdt87-rgb/Testemobilcursor@gh-pages/index.html
           EOF
+          sed -i "s|https://[a-z0-9-]*\.shipstatic\.com|${SHIP_URL}|g" OUVRE-MOI.md README.md
 
       - name: Commit LIEN.txt
         env:
@@ -53,7 +54,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/LIEN.txt
+          git add web/LIEN.txt OUVRE-MOI.md README.md
           if git diff --staged --quiet; then
             echo "LIEN.txt inchangé"
           else
