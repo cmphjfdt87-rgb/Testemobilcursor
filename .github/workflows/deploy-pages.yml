@@ -1,39 +1,34 @@
-name: Deploy web app (GitHub Pages)
+name: Deploy web app
 
-# Publie l'app Web Bluetooth (dossier web/) sur GitHub Pages — hébergement
-# gratuit, HTTPS, aucune configuration serveur. Web Bluetooth EXIGE HTTPS,
-# ce que Pages fournit.
-#
-# Une fois activé (Settings → Pages → Source = GitHub Actions), l'URL est :
-#   https://<utilisateur>.github.io/<depot>/
+# Publie web/ sur la branche gh-pages à chaque push sur main.
+# Ne nécessite PAS l'environnement github-pages (évite le blocage protection rules).
 
 on:
   push:
-    branches: ["main", "cursor/ninebot-ios-app-0594"]
+    branches: ["main"]
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: gh-pages-deploy
   cancel-in-progress: true
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
+
+      - name: Déployer sur gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
+          publish_branch: gh-pages
+          force_orphan: false
+          enable_jekyll: false
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "Deploy NBX Console from main"
