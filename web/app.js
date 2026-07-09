@@ -115,7 +115,7 @@ function le32(p){return p.length>=4?((p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24))>>>0)
 
 function send(bytes){if(!rx)return;var out;
  if(mode==="enc"&&crypto)out=crypto.encrypt(bytes);else out=bytes;
- var u=Uint8Array.from(out);
+ var u=new Uint8Array(out.length);for(var ui=0;ui<out.length;ui++)u[ui]=out[ui];
  rx.writeValueWithoutResponse(u).catch(function(){return rx.writeValue(u).catch(function(e){log("écriture: "+e.message);});});}
 
 function readReg(reg,n){if(mode==="enc")send(encReadFrame(reg,n));else send(plainRead(reg,n));}
