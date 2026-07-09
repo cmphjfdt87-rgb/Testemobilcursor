@@ -11,13 +11,24 @@
 <link rel="apple-touch-icon" href="./icon.png" />
 <title>NBX — Ninebot Console</title>
 <script>
-/* Watchdog : vérifie que le script inline démarre */
+/* Boot immédiat — Bluefy peut mettre >10s à parser le gros script crypto */
 (function(){
- function fail(msg){var s=document.getElementById("boot-status");if(s){s.textContent=msg;s.className="hint warn";}}
- function w(){if(window.__nbxReady)return;fail("Script non chargé. Tire vers le bas pour rafraîchir, ou réouvre le lien dans Bluefy.");}
- window.__nbxFail=fail;
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(w,10000);});
- else setTimeout(w,10000);
+ function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+ window.__nbxReady=true;
+ window.__nbxCore=false;
+ window.__nbxFail=function(msg){var s=document.getElementById("boot-status");if(s){s.textContent=msg;s.className="hint warn";}};
+ window.connect=window.connect||function(){alert("Chargement… attends 2 secondes puis réessaie.");};
+ window.connectAll=window.connectAll||window.connect;
+ window.disconnect=window.disconnect||function(){};
+ function boot(){
+  var st=document.getElementById("boot-status");
+  if(st)st.textContent=hasBT()?"NBX v2.4 — Prêt. Appuie sur « Connecter ».":"NBX v2.4 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
+  if(!hasBT()){var n=document.getElementById("nobt");if(n)n.classList.remove("hidden");}
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+ setTimeout(function(){
+  if(!window.__nbxCore)window.__nbxFail("Modules lents. Tire vers le bas pour rafraîchir la page.");
+ },30000);
 })();
 </script>
 <style>
@@ -186,6 +197,7 @@ details .body b{color:var(--ink)}
  </div>
 
  <div id="boot-status" class="hint" style="margin-top:0;text-align:center;font-size:13px">Chargement…</div>
+<script>document.getElementById("boot-status").textContent="NBX v2.4 — Chargement…";</script>
 
  <div id="nobt" class="hint warn hidden">
   <b>Bluetooth web indisponible.</b> Sur iPhone, ouvre cette page dans <b>Bluefy</b> (App Store, gratuit) — Safari ne gère pas le Bluetooth.
@@ -338,6 +350,7 @@ details .body b{color:var(--ink)}
 
 <script>
 "use strict";
+/* --- Module crypto (chargé en premier, séparé pour Bluefy) --- */
 var AES_SBOX_HEX="637c777bf26b6fc53001672bfed7ab76ca82c97dfa5947f0add4a2af9ca472c0"+
 "b7fd9326363ff7cc34a5e5f171d8311504c723c31896059a071280e2eb27b275"+
 "09832c1a1b6e5aa0523bd6b329e32f8453d100ed20fcb15b6acbbe394a4c58cf"+
@@ -407,6 +420,10 @@ NB.prototype.decrypt=function(D){var de=new Array(D.length-6).fill(0),i;for(i=0;
  else if(nit>0&&nit>this.it){pay=this._next(pay,nit);for(i=0;i<pay.length;i++)de[3+i]=pay[i];
  if(de[0]===0x5A&&de[1]===0xA5&&de[2]===0x00&&de[3]===0x21&&de[4]===0x3E&&de[5]===0x5C&&de[6]===0x01){this._sha(this.rA,this.rB);}this.it=nit;}
  return de;};
+</script>
+<script>
+"use strict";
+/* --- Console Bluetooth --- */
 var UART="6e400001-b5a3-f393-e0a9-e50e24dcca9e",RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e",TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 var APP=0x3d,ESC=0x20;
 var REG={serial:0x10,fw:0x1a,battery:0x32,voltage:0x34,speed:0xb5,total:0x29,temp:0x3e,region:0x72,limit:0x74,cruise:0x7c,tail:0x7d};
@@ -436,7 +453,7 @@ function le16s(p){var v=le16(p);return v==null?null:(v>0x7fff?v-0x10000:v);}
 function le32(p){return p.length>=4?((p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24))>>>0):null;}
 function send(bytes){if(!rx)return;var out;
  if(mode==="enc"&&crypto)out=crypto.encrypt(bytes);else out=bytes;
- var u=Uint8Array.from(out);
+ var u=new Uint8Array(out.length);for(var ui=0;ui<out.length;ui++)u[ui]=out[ui];
  rx.writeValueWithoutResponse(u).catch(function(){return rx.writeValue(u).catch(function(e){log("écriture: "+e.message);});});}
 function readReg(reg,n){if(mode==="enc")send(encReadFrame(reg,n));else send(plainRead(reg,n));}
 function writeReg(reg,bytes){if(mode==="enc")send(encWriteFrame(reg,bytes));else send(plainWrite(reg,bytes));}
@@ -606,9 +623,10 @@ function init(){
  $("btn-unlock").onclick=runDiag;
  if(!hasBT()){$("nobt").classList.remove("hidden");}
  var st=$("boot-status");
- if(st)st.textContent=hasBT()?"NBX v2.3 — Prêt. Appuie sur « Connecter ».":"NBX v2.3 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
+ if(st)st.textContent=hasBT()?"NBX v2.4 — Prêt. Appuie sur « Connecter ».":"NBX v2.4 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
  log("Application prête.");
  window.__nbxReady=true;
+ window.__nbxCore=true;
  }catch(err){
  var st=$("boot-status");if(st){st.textContent="Erreur au démarrage : "+err.message;st.classList.add("warn");}
  alert("Erreur au démarrage : "+err.message);
