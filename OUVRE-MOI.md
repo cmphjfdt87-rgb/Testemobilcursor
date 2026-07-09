@@ -7,7 +7,7 @@ Tu n'as **rien d'autre à faire**. Pas de PC, pas de compte, pas de GitHub.
 **Copie ce lien et ouvre-le dans Bluefy** (pas Safari) :
 
 ```
-https://unstable-mote-26t57j0.shipstatic.com
+https://pristine-node-3lt0o0h.shipstatic.com
 ```
 
 Tu dois voir l'écran **NBX Console** (bouton blanc « Connecter ma trottinette »), **pas** du code HTML.
