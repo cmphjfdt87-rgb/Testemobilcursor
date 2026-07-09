@@ -87,12 +87,21 @@ var REGIONS=[
  {v:0x03,tag:"CN",name:"Chine",note:"25 km/h"}
 ];
 var MAXKMH=35;
-var st={},dev=null,rx=null,tx=null,buf=[],poll=null,mode=null,crypto=null,handshake=null,probeTimer=null,gotReply=false;
+var st={},dev=null,rx=null,tx=null,buf=[],poll=null,mode=null,crypto=null,handshake=null,probeTimer=null,hsTimer=null,gotReply=false;
 
 function $(id){return document.getElementById(id);}
 function now(){return new Date().toLocaleTimeString();}
 function log(m){var el=$("log");el.textContent="["+now()+"] "+m+"\n"+el.textContent;}
 function hasBT(){return typeof navigator!=="undefined"&&!!navigator.bluetooth;}
+function asciiBytes(a){return String.fromCharCode.apply(null,a).replace(/[^\x20-\x7e]/g,"").trim();}
+function isESeriesName(n){if(!n)return false;n=n.toUpperCase();return /E\d{2}|E45E?|KICKSCOOTER|NINEBOT\s*E|NBX|ES\d|MISCOOTER\s*E/i.test(n);}
+function saveSession(){
+ if(!dev||!dev.name||!hs_key)return;
+ try{localStorage.setItem("nbx_"+dev.name,JSON.stringify({key:hs_key,auth:crypto?crypto.rB.slice():[]}));}catch(e){}
+}
+function loadSession(name){
+ try{var j=localStorage.getItem("nbx_"+name);return j?JSON.parse(j):null;}catch(e){return null;}
+}
 
 /* ---- plaintext frame (M365) ---- */
 function ck16(a){var s=0;for(var i=0;i<a.length;i++)s=(s+a[i])>>>0;return(~s)&0xffff;}
@@ -140,37 +149,50 @@ function go(opts){
  .catch(function(e){hideOverlay();log("Erreur : "+e.message);if(e.message&&e.message.indexOf("cancel")<0)alert("Connexion impossible : "+e.message);});
  }catch(e){hideOverlay();alert("Erreur Bluetooth : "+e.message);}
 }
-function onDisc(){clearInterval(poll);clearTimeout(probeTimer);if(handshake)clearInterval(handshake);rx=tx=null;mode=null;crypto=null;buf=[];log("Déconnecté.");$("screen-app").classList.add("hidden");$("screen-connect").classList.remove("hidden");hideOverlay();}
+function onDisc(){clearInterval(poll);clearTimeout(probeTimer);clearTimeout(hsTimer);if(handshake)clearInterval(handshake);rx=tx=null;mode=null;crypto=null;buf=[];log("Déconnecté.");$("screen-app").classList.add("hidden");$("screen-connect").classList.remove("hidden");hideOverlay();}
 function disconnect(){clearInterval(poll);if(dev&&dev.gatt.connected)dev.gatt.disconnect();}
 
-/* Détection : on tente le clair; sans réponse en 2.5 s → chiffré (E-series) */
+/* E45E / E-series : protocole chiffré direct (pas de test clair) */
 function startProbe(){
+ if(dev&&isESeriesName(dev.name)){
+  log("Ninebot E-series détectée (« "+dev.name+" ») — appairage chiffré.");
+  startEncrypted(true);
+  return;
+ }
  mode="plain";gotReply=false;buf=[];
  showOverlay("Détection…","Test du protocole ouvert (M365 / ES).",0);
  readReg(REG.serial,14);readReg(REG.fw,2);readReg(REG.battery,2);
  probeTimer=setTimeout(function(){
   if(gotReply){enterComm("Protocole ouvert");}
-  else{startEncrypted();}
+  else{startEncrypted(false);}
  },2500);
 }
 
-/* ---- appairage chiffré E-series ---- */
-function startEncrypted(){
- if(!dev.name){showOverlay("Nom Bluetooth manquant","Impossible d'initialiser le chiffrement sans le nom de l'appareil. Réessaie via « tous les appareils ».",0);setPower(false);return;}
- mode="enc";crypto=new NB(dev.name);buf=[];st.enc=true;
- setStep(0);showOverlay("Appairage chiffré…","Ta trottinette utilise le protocole chiffré Ninebot (E-series). Tentative de session sécurisée.",1);
+function startEncrypted(eKnown){
+ if(!dev.name){showOverlay("Nom Bluetooth manquant","Choisis ta trottinette dans la liste Bluetooth (il faut voir son nom).",0);return;}
+ mode="enc";crypto=new NB(dev.name);buf=[];st.enc=true;st.e45e=eKnown||isESeriesName(dev.name);
+ setStep(0);
+ var msg=st.e45e?"Ninebot E45E / E-series — appuie sur le bouton power quand demandé.":"Protocole chiffré Ninebot — tentative d'appairage.";
+ showOverlay("Appairage E-series…",msg,1);
  log("Handshake chiffré (nom="+dev.name+")");
- hs_state="precomm";hs_send();
+ hs_state="precomm";hs_sn=null;hs_key=null;hs_send();
+ clearTimeout(hsTimer);
+ hsTimer=setTimeout(function(){
+  if(hs_state&&hs_state!=="done"){log("Timeout appairage — déconnecte et réessaie.");hideOverlay();alert("Appairage trop long.\n\n1. Trottinette allumée, à l'arrêt\n2. Appuie sur le bouton power quand l'écran le demande\n3. Réessaie la connexion");}
+ },90000);
 }
-var hs_state=null,hs_sn=null,hs_key=null;
+var hs_state=null,hs_sn=null,hs_key=null,hs_auth=null;
 function randKey(){var s="abcdefghijklmnopqrstuvwxyz0123456789",a=[];for(var i=0;i<16;i++)a.push(s.charCodeAt(Math.floor(Math.random()*s.length)));return a;}
 function hs_send(){
  clearInterval(handshake);
  if(hs_state==="precomm"){send(encHandshake(0x00,0x5B,[]));handshake=setInterval(function(){if(hs_state==="precomm")send(encHandshake(0x00,0x5B,[]));},1000);}
- else if(hs_state==="setpwd"){if(!hs_key)hs_key=randKey();setStep(1);setPower(true);
-  send(encHandshake(0x10,0x5C,hs_key));handshake=setInterval(function(){if(hs_state==="setpwd")send(encHandshake(0x10,0x5C,hs_key));},1000);}
- else if(hs_state==="auth"){setStep(2);setPower(false);
-  send(encHandshake(0x0E,0x5D,hs_sn));handshake=setInterval(function(){if(hs_state==="auth")send(encHandshake(0x0E,0x5D,hs_sn));},1200);}
+ else if(hs_state==="setpwd"){
+  if(!hs_key)hs_key=randKey();
+  setStep(1);setPower(true);
+  send(encHandshake(0x10,0x5C,hs_key));
+  handshake=setInterval(function(){if(hs_state==="setpwd")send(encHandshake(0x10,0x5C,hs_key));},2000);
+ }
+ else if(hs_state==="auth"){setStep(2);setPower(false);send(encHandshake(0x0E,0x5D,hs_sn));handshake=setInterval(function(){if(hs_state==="auth")send(encHandshake(0x0E,0x5D,hs_sn));},1200);}
 }
 
 /* =========================== RÉCEPTION =========================== */
@@ -193,21 +215,46 @@ function pumpEnc(){
 function handleEnc(dec){
  gotReply=true;
  var cmd=dec[5],arg=dec[6];
- if(cmd===0x5B){ // PRE_COMM reply : contient S/N
-  var pay=dec.slice(6);var sn=pay.slice(16,30);hs_sn=sn;
-  st.serial=String.fromCharCode.apply(null,sn).replace(/[^\x20-\x7e]/g,"").trim();
-  log("Appairage : réponse reçue, S/N "+st.serial);
-  hs_state="setpwd";hs_send();render();return;
+ if(cmd===0x5B){
+  hs_auth=dec.slice(7,23);
+  hs_sn=dec.slice(23,37);
+  st.serial=asciiBytes(hs_sn);
+  log("PRE_COMM — S/N "+st.serial);
+  var stored=loadSession(dev.name);
+  if(arg!==0&&stored&&stored.key&&stored.key.length===16){
+   hs_key=stored.key;
+   for(var i=0;i<16;i++)crypto.rB[i]=hs_auth[i];
+   for(var j=0;j<16;j++)crypto.rA[j]=hs_key[j];
+   crypto._sha(crypto.rA,crypto.rB);
+   log("Session mémorisée — AUTH direct");
+   hs_state="auth";hs_send();
+  }else{
+   hs_key=null;hs_state="setpwd";hs_send();
+  }
+  render();return;
  }
- if(cmd===0x5C){ // SET_PWD reply (arg 01 = bouton pressé / clé acceptée)
-  log("Clé "+(arg===1?"acceptée (bouton pressé)":"reçue"));
-  hs_state="auth";hs_send();return;
+ if(cmd===0x5C){
+  if(arg===1){
+   log("✅ Bouton power accepté");
+   hs_state="auth";hs_send();
+  }else{
+   log("Appuie sur le bouton power de la trottinette…");
+   setPower(true);
+  }
+  return;
  }
- if(cmd===0x5D){ // AUTH reply → appairé
-  log("✅ Appairé.");clearInterval(handshake);enterComm("Chiffré Ninebot (E-series)");return;
+ if(cmd===0x5D){
+  if(arg===1){
+   log("✅ Appairé — session E-series active");
+   hs_state="done";saveSession();clearInterval(handshake);clearTimeout(hsTimer);
+   enterComm(st.e45e?"Ninebot E45E (chiffré)":"Chiffré Ninebot (E-series)");
+  }else{
+   log("AUTH refusée — nouvel essai");
+   try{localStorage.removeItem("nbx_"+dev.name);}catch(e){}
+   hs_key=null;hs_state="setpwd";hs_send();
+  }
+  return;
  }
- // réponse de lecture : [5A A5 len src dst cmd reg data...] ; le tableau déchiffré
- // est déjà borné à la bonne taille, donc on prend tout après le registre.
  if(dec.length>7)applyReg(dec[6],dec.slice(7));
 }
 
@@ -247,7 +294,7 @@ function render(){
  $("serial").textContent=st.serial||"—";
  $("fw").textContent=st.fw||"—";
  $("proto").textContent=st.proto||"—";
- $("model").textContent=st.enc?(st.serial&&/^N/.test(st.serial)?"Ninebot E-series":"Ninebot (chiffré)"):"Xiaomi/Ninebot (ouvert)";
+ $("model").textContent=st.e45e?"Ninebot E45E":(st.enc?(st.serial&&/^N/.test(st.serial)?"Ninebot E-series":"Ninebot (chiffré)"):"Xiaomi/Ninebot (ouvert)");
  var r=null;for(var i=0;i<REGIONS.length;i++)if(REGIONS[i].v===st.region)r=REGIONS[i];
  document.querySelectorAll(".reg").forEach(function(b){b.classList.toggle("on",Number(b.dataset.v)===st.region);});
  if(st.limit!=null)$("limit-cur").textContent="Actuel : "+st.limit+" km/h";
@@ -275,10 +322,12 @@ function runDiag(){
 function diagResult(before,target){
  var b=$("diag-body");
  if(st.enc){
-  b.innerHTML="<b>Modèle chiffré détecté"+(st.serial?(" — "+st.serial):"")+".</b><br><br>"+
-   "La console a établi une session chiffrée et lit les données, mais l'<b>écriture de la vitesse est bloquée par le firmware</b> ("+(st.fw?("DRV "+st.fw):"DRV 2.7.x")+"). "+
-   "Sur E-series, il faut <b>rétrograder le firmware</b> — impossible et risqué depuis une app web.<br><br>"+
-   "👉 Déplie « Ma trottinette est une Ninebot E-series » ci-dessus : la méthode sûre passe par <b>ScooterHacking Utility</b> (Android), vitesse réelle ~30 km/h.";
+  var fwNote=st.fw?"DRV "+st.fw:"DRV 2.7.x";
+  b.innerHTML="<b>Ninebot E45E connectée"+(st.serial?(" — "+st.serial):"")+"</b><br><br>"+
+   "✅ <b>Connexion OK</b> — vitesse, batterie et firmware lisibles.<br><br>"+
+   "⚠️ <b>Débridage bloqué par le firmware "+fwNote+"</b> : l'écriture région/vitesse est refusée par la trottinette. Ce n'est pas un bug de l'app — c'est une protection Ninebot.<br><br>"+
+   "<b>Vitesse max réelle possible : ~30 km/h</b> (pas 45). Il faut rétrograder le firmware via <b>ScooterHacking Utility</b> sur Android (15 min, gratuit).<br><br>"+
+   "👉 Voir le guide E-series ci-dessous.";
   $("eblock").open=true;return;
  }
  var okLimit=(st.limit===target)||(before.limit!==st.limit&&st.limit!=null);
@@ -303,17 +352,18 @@ function init(){
   $("btn-connect").onclick=connect;
   $("btn-connect-all").onclick=connectAll;
   $("btn-disconnect").onclick=disconnect;
-  var sl=$("limit");if(sl)sl.oninput=function(){$("limit-val").textContent=sl.value;};
+  var sl=$("limit");if(sl){sl.value=30;$("limit-val").textContent="30";sl.oninput=function(){$("limit-val").textContent=sl.value;};}
   $("btn-apply").onclick=function(){if(!consentOn){alert("Coche d'abord la case de responsabilité.");return;}setSpeed(Number(sl.value));};
   $("consent").onclick=function(){consentOn=!consentOn;$("consent").classList.toggle("on",consentOn);};
   $("sw-cruise").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-cruise").classList.contains("on");$("sw-cruise").classList.toggle("on",on);writeReg(REG.cruise,[on?1:0]);};
   $("sw-tail").onclick=function(){if(!consentOn){alert("Coche la case de responsabilité.");return;}var on=!$("sw-tail").classList.contains("on");$("sw-tail").classList.toggle("on",on);writeReg(REG.tail,[on?1:0]);};
   $("btn-unlock").onclick=runDiag;
   if(!hasBT()){$("nobt").classList.remove("hidden");}
-  var st=$("boot-status");
-  if(st)st.textContent=hasBT()?"NBX v2.2 — Prêt. Appuie sur « Connecter ».":"NBX v2.2 — Ouvre cette page dans Bluefy pour activer le Bluetooth.";
-  log("Application prête.");
+  var bootEl=$("boot-status");
+  if(bootEl)bootEl.textContent=hasBT()?"NBX v2.5 E45E — Prêt. Connecte ta trottinette.":"NBX v2.5 — Ouvre dans Bluefy.";
+  log("NBX v2.5 — profil E45E actif.");
   window.__nbxReady=true;
+  window.__nbxCore=true;
  }catch(err){
   var st=$("boot-status");if(st){st.textContent="Erreur au démarrage : "+err.message;st.classList.add("warn");}
   alert("Erreur au démarrage : "+err.message);
