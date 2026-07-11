@@ -2,7 +2,7 @@
 
 > **Tu veux juste ouvrir l'app sur ton iPhone sans rien configurer ?**
 > Lis **[OUVRE-MOI.md](OUVRE-MOI.md)** — 3 gestes, Bluefy + Bluetooth.
-> URL directe : `https://pristine-node-3lt0o0h.shipstatic.com`
+> URL directe : `https://driven-binary-5br3fny.shipstatic.com`
 
 Application iOS **native** (SwiftUI + CoreBluetooth) pour se connecter en Bluetooth
 à une trottinette **Ninebot / Xiaomi** que vous possédez, afficher sa télémétrie
