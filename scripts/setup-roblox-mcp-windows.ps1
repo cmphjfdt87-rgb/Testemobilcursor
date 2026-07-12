@@ -37,7 +37,7 @@ $cursorMcpJson = Join-Path $cursorDir "mcp.json"
 
 $robloxServer = @{
     command = "cmd.exe"
-    args    = @("/c", "%LOCALAPPDATA%\Roblox\mcp.bat")
+    args    = @("/c", "cd /d %LOCALAPPDATA%\Roblox && .\mcp.bat")
 }
 
 Write-Step "Checking Roblox Studio MCP files"
