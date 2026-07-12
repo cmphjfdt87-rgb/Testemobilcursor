@@ -2,7 +2,16 @@
 
 Chaque joueur reçoit **5000$** à sa première arrivée. L'argent est sauvegardé (DataStore) entre les sessions.
 
-## 1. Copier les scripts
+## Installation rapide (1 clic)
+
+1. **ServerScriptService** → Insert Object → **Script** → nomme-le `InstallMoneySystem`
+2. Ouvre `roblox/InstallMoneySystem.server.luau` et **colle tout** dans le script
+3. Appuie sur **Play (F5)** une fois
+4. Le script crée tout automatiquement puis se supprime
+5. Renomme ton TextLabel d'argent en **`Money`** ou **`Argent`**
+6. Relance **Play** — tu dois voir **$5000**
+
+## Installation manuelle (alternative)
 
 | Fichier source | Où le mettre dans Studio |
 |---|---|
