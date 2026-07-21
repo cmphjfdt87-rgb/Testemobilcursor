@@ -7,7 +7,7 @@ Tu n'as **rien d'autre à faire**. Pas de PC, pas de compte, pas de GitHub.
 **Copie ce lien et ouvre-le dans Bluefy** (pas Safari) :
 
 ```
-https://liminal-nano-oj7j95q.shipstatic.com
+https://piercing-aura-97nhtwv.shipstatic.com
 ```
 
 Tu dois voir l'écran **NBX Console** (bouton blanc « Connecter ma trottinette »), **pas** du code HTML.
