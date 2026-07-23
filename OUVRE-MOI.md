@@ -7,7 +7,7 @@ Tu n'as **rien d'autre à faire**. Pas de PC, pas de compte, pas de GitHub.
 **Copie ce lien et ouvre-le dans Bluefy** (pas Safari) :
 
 ```
-https://piercing-aura-97nhtwv.shipstatic.com
+https://auric-bit-3e3n82h.shipstatic.com
 ```
 
 Tu dois voir l'écran **NBX Console** (bouton blanc « Connecter ma trottinette »), **pas** du code HTML.
